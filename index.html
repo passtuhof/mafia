@@ -329,6 +329,7 @@ let gameStage = 'intro';
 
 let activeWakeRole = null;
 let selectedTargetIndex = null;
+let votingTargetIndex = null;
 
 let mafiaTargetIndex = null;
 let maniacTargetIndex = null;
@@ -373,6 +374,7 @@ function saveState(){
             gameStage,
             activeWakeRole,
             selectedTargetIndex,
+            votingTargetIndex,
             mafiaTargetIndex,
             maniacTargetIndex,
             commissionerTargetIndex,
@@ -398,6 +400,7 @@ function loadState(){
         gameStage = state.gameStage || 'intro';
         activeWakeRole = normalizeRole(state.activeWakeRole || null);
         selectedTargetIndex = Number.isInteger(state.selectedTargetIndex) ? state.selectedTargetIndex : null;
+        votingTargetIndex = Number.isInteger(state.votingTargetIndex) ? state.votingTargetIndex : null;
         mafiaTargetIndex = Number.isInteger(state.mafiaTargetIndex) ? state.mafiaTargetIndex : null;
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
         commissionerTargetIndex = Number.isInteger(state.commissionerTargetIndex) ? state.commissionerTargetIndex : null;
@@ -409,6 +412,7 @@ function loadState(){
         gameStage = 'intro';
         activeWakeRole = null;
         selectedTargetIndex = null;
+        votingTargetIndex = null;
         mafiaTargetIndex = null;
         maniacTargetIndex = null;
         commissionerTargetIndex = null;
@@ -461,7 +465,7 @@ function renderTable(){
         row.dataset.index = String(index);
 
         const isActiveRole = gameStage === 'night' && activeWakeRole && player.role === activeWakeRole;
-        const isTarget = gameStage === 'night' && selectedTargetIndex === index;
+        const isTarget = (gameStage === 'night' && selectedTargetIndex === index) || (gameStage === 'voting' && votingTargetIndex === index);
         const isDead = player.alive === false;
         const isDoctorForbidden = gameStage === 'night' && activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index;
 
@@ -525,6 +529,8 @@ function renderScreen(){
         choiceBtn.disabled = false;
         choiceBtn.onclick = startNight;
 
+        ensureVoteButton(true);
+
         const hasHistory =
             mafiaTargetIndex !== null ||
             maniacTargetIndex !== null ||
@@ -535,11 +541,28 @@ function renderScreen(){
         document.getElementById('wakeTitle').textContent = '';
         document.getElementById('actionText').textContent = '';
         renderChoiceHistory();
+    }else if(gameStage === 'voting'){
+        phaseTitle.textContent = 'Сейчас день';
+        startButtons.style.display = 'none';
+        gameButtons.style.display = 'flex';
+
+        ensureVoteButton(false);
+
+        choiceBtn.textContent = 'Выбор';
+        choiceBtn.disabled = votingTargetIndex === null;
+        choiceBtn.onclick = confirmVotingChoice;
+
+        wakeBlock.style.display = 'block';
+        document.getElementById('wakeTitle').textContent = 'Сейчас голосование…';
+        document.getElementById('actionText').textContent = 'Выбери кого казнить (нажмите на игрока)';
+        document.getElementById('choiceHistory').innerHTML = '';
     }else if(gameStage === 'night'){
         phaseTitle.textContent = 'Сейчас ночь';
         startButtons.style.display = 'none';
         gameButtons.style.display = 'flex';
         wakeBlock.style.display = 'block';
+
+        ensureVoteButton(false);
 
         choiceBtn.textContent = 'Выбор';
         choiceBtn.onclick = confirmNightChoice;
@@ -672,6 +695,10 @@ function updateChoiceButton(){
     if(gameStarted && gameStage === 'night'){
         choiceBtn.disabled = selectedTargetIndex === null;
     }
+
+    if(gameStarted && gameStage === 'voting'){
+        choiceBtn.disabled = votingTargetIndex === null;
+    }
 }
 
 function hasRequiredStartRoles(){
@@ -739,6 +766,8 @@ function startDay(){
     gameStage = 'day';
     activeWakeRole = null;
     selectedTargetIndex = null;
+    votingTargetIndex = null;
+    votingTargetIndex = null;
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
@@ -768,9 +797,52 @@ function getNextAliveRole(afterRole){
     return null;
 }
 
+
+function ensureVoteButton(shouldShow){
+    let voteBtn = document.getElementById('voteBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!voteBtn){
+            voteBtn = document.createElement('button');
+            voteBtn.className = 'main-btn choice-btn';
+            voteBtn.id = 'voteBtn';
+            voteBtn.textContent = 'Голосование';
+            voteBtn.addEventListener('click', startVoting);
+            choiceBtn.insertAdjacentElement('afterend', voteBtn);
+        }
+
+        voteBtn.style.display = '';
+    }else if(voteBtn){
+        voteBtn.style.display = 'none';
+    }
+}
+
+function startVoting(){
+    gameStage = 'voting';
+    votingTargetIndex = null;
+    selectedTargetIndex = null;
+    renderScreen();
+}
+
+function confirmVotingChoice(){
+    if(votingTargetIndex === null){
+        return;
+    }
+
+    if(players[votingTargetIndex]){
+        players[votingTargetIndex].alive = false;
+    }
+
+    votingTargetIndex = null;
+    startNight();
+}
+
+
 function startNight(){
     gameStage = 'night';
     selectedTargetIndex = null;
+    votingTargetIndex = null;
     activeWakeRole = null;
 
     mafiaTargetIndex = null;
@@ -851,10 +923,20 @@ function startMorning(){
 }
 
 function choosePlayer(index){
-    if(gameStage !== 'night' || !activeWakeRole) return;
-
     const player = players[index];
     if(!player) return;
+
+    if(gameStage === 'voting'){
+        if(player.alive === false){
+            return;
+        }
+
+        votingTargetIndex = index;
+        renderScreen();
+        return;
+    }
+
+    if(gameStage !== 'night' || !activeWakeRole) return;
 
     if(player.role === activeWakeRole && activeWakeRole !== ROLE_DOCTOR){
         return;
@@ -893,6 +975,7 @@ function finishGame(){
     gameStage = 'intro';
     activeWakeRole = null;
     selectedTargetIndex = null;
+    votingTargetIndex = null;
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
