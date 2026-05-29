@@ -288,8 +288,8 @@ const STORAGE_KEY = 'mafia_app_state_stable_v1';
 
 const ROLE_CIVILIAN = '👤 Мирный';
 const ROLE_MAFIA = '🔫 Мафия';
-const ROLE_COMMISSIONER = '⭐ Комиссар';
-const ROLE_DOCTOR = '🚑 Доктор';
+const ROLE_COMMISSIONER = '🔍 Комиссар';
+const ROLE_DOCTOR = '💉 Доктор';
 const ROLE_MANIAC = '🔪 Маньяк';
 
 let players = [];
@@ -312,6 +312,18 @@ function makeDefaultPlayers(){
     }));
 }
 
+function normalizeRole(role){
+    if(role === '⭐ Комиссар'){
+        return ROLE_COMMISSIONER;
+    }
+
+    if(role === '🚑 Доктор'){
+        return ROLE_DOCTOR;
+    }
+
+    return role;
+}
+
 function normalizePlayers(list){
     if(!Array.isArray(list) || list.length === 0){
         return makeDefaultPlayers();
@@ -319,7 +331,7 @@ function normalizePlayers(list){
 
     return list.map(player => ({
         name: typeof player.name === 'string' ? player.name : '',
-        role: typeof player.role === 'string' ? player.role : ROLE_CIVILIAN,
+        role: normalizeRole(typeof player.role === 'string' ? player.role : ROLE_CIVILIAN),
         alive: player.alive !== false
     }));
 }
