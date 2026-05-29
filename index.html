@@ -531,8 +531,8 @@ function renderChoiceHistory(){
 
         history.push(isDaySummary
             ? (mafiaKillBlocked
-                ? `— Мафия <span style='color:#888'>никого</span> не убила`
-                : `— Мафия убила «<span style='color:#d60000'>${name}</span>»`
+                ? `— Мафия никого <span style='color:#888'>не убила</span>`
+                : `— Мафия <span style='color:#d60000'>убила</span> «${name}»`
               )
             : `— Мафия выбрала «${name}»`
         );
@@ -544,8 +544,8 @@ function renderChoiceHistory(){
 
         history.push(isDaySummary
             ? (maniacKillBlocked
-                ? `— Маньяк <span style='color:#888'>никого</span> не убил`
-                : `— Маньяк убил «<span style='color:#d60000'>${name}</span>»`
+                ? `— Маньяк никого <span style='color:#888'>не убил</span>`
+                : `— Маньяк <span style='color:#d60000'>убил</span> «${name}»`
               )
             : `— Маньяк выбрал «${name}»`
         );
@@ -573,8 +573,8 @@ function renderChoiceHistory(){
 
         history.push(isDaySummary
             ? (doctorSavedSomeone
-                ? `— Доктор вылечил <span style='color:#2ecc71'>игрока</span>`
-                : `— Доктор <span style='color:#888'>никого</span> не вылечил`
+                ? `— Доктор <span style='color:#2ecc71'>вылечил игрока</span>`
+                : `— Доктор <span style='color:#888'>никого не вылечил</span>`
               )
             : `— Доктор выбрал «${name}»`
         );
