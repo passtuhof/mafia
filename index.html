@@ -494,7 +494,7 @@ function renderTable(){
                 >
             </div>
             <div class="cell" data-click-target="${index}">
-                <select ${gameStarted ? 'disabled' : ''} data-role-index="${index}">
+                <select ${(gameStarted || !player.name.trim()) ? 'disabled' : ''} data-role-index="${index}">
                     ${getRoleOptions(player.role, index)}
                 </select>
             </div>
