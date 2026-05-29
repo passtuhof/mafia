@@ -505,19 +505,19 @@ function renderChoiceHistory(){
     const history = [];
 
     if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
-        history.push(`— Мафия выбрала «${escapeHtml(players[mafiaTargetIndex].name)}»`);
+        history.push(`— Мафия убила «${escapeHtml(players[mafiaTargetIndex].name)}»`);
     }
 
     if(maniacTargetIndex !== null && players[maniacTargetIndex]){
-        history.push(`— Маньяк выбрал «${escapeHtml(players[maniacTargetIndex].name)}»`);
+        history.push(`— Маньяк убил «${escapeHtml(players[maniacTargetIndex].name)}»`);
     }
 
     if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
-        history.push(`— Комиссар выбрал «${escapeHtml(players[commissionerTargetIndex].name)}»`);
+        history.push(`— Комиссар проверил «${escapeHtml(players[commissionerTargetIndex].name)}»`);
     }
 
     if(doctorTargetIndex !== null && players[doctorTargetIndex]){
-        history.push(`— Доктор выбрал «${escapeHtml(players[doctorTargetIndex].name)}»`);
+        history.push(`— Доктор вылечил «${escapeHtml(players[doctorTargetIndex].name)}»`);
     }
 
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
