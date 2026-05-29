@@ -326,13 +326,16 @@ const ROLE_MANIAC = '🔪 Маньяк';
 let players = [];
 let gameStarted = false;
 let gameStage = 'intro';
+
 let activeWakeRole = null;
 let selectedTargetIndex = null;
+
 let mafiaTargetIndex = null;
 let maniacTargetIndex = null;
 let commissionerTargetIndex = null;
 let doctorTargetIndex = null;
 let previousDoctorTargetIndex = null;
+
 let draggedIndex = null;
 let currentOverIndex = null;
 
@@ -345,14 +348,8 @@ function makeDefaultPlayers(){
 }
 
 function normalizeRole(role){
-    if(role === '⭐ Комиссар'){
-        return ROLE_COMMISSIONER;
-    }
-
-    if(role === '🚑 Доктор'){
-        return ROLE_DOCTOR;
-    }
-
+    if(role === '⭐ Комиссар') return ROLE_COMMISSIONER;
+    if(role === '🚑 Доктор') return ROLE_DOCTOR;
     return role;
 }
 
@@ -388,16 +385,18 @@ function saveState(){
 function loadState(){
     try{
         const saved = localStorage.getItem(STORAGE_KEY);
+
         if(!saved){
             players = makeDefaultPlayers();
             return;
         }
 
         const state = JSON.parse(saved);
+
         players = normalizePlayers(state.players);
         gameStarted = Boolean(state.gameStarted);
         gameStage = state.gameStage || 'intro';
-        activeWakeRole = state.activeWakeRole || null;
+        activeWakeRole = normalizeRole(state.activeWakeRole || null);
         selectedTargetIndex = Number.isInteger(state.selectedTargetIndex) ? state.selectedTargetIndex : null;
         mafiaTargetIndex = Number.isInteger(state.mafiaTargetIndex) ? state.mafiaTargetIndex : null;
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
@@ -452,10 +451,6 @@ function getRoleOptions(selectedRole, playerIndex){
     }).join('');
 }
 
-function getRoleName(role){
-    return role.replace(/^.+?\s/, '');
-}
-
 function renderTable(){
     const table = document.getElementById('playersTable');
     table.querySelectorAll('.data-row').forEach(row => row.remove());
@@ -470,17 +465,9 @@ function renderTable(){
         const isDead = player.alive === false;
         const isDoctorForbidden = gameStage === 'night' && activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index;
 
-        if(isDoctorForbidden){
-            row.classList.add('doctor-forbidden');
-        }
-
-        if(isDead){
-            row.classList.add('dead-player');
-        }
-
-        if(isActiveRole){
-            row.classList.add('role-highlight');
-        }
+        if(isDoctorForbidden) row.classList.add('doctor-forbidden');
+        if(isDead) row.classList.add('dead-player');
+        if(isActiveRole) row.classList.add('role-highlight');
 
         if(isTarget){
             if(activeWakeRole === ROLE_COMMISSIONER || activeWakeRole === ROLE_DOCTOR){
@@ -491,7 +478,7 @@ function renderTable(){
         }
 
         row.innerHTML = `
-            <div class="cell number-cell" data-click-target="${index}">${player.alive === false ? "☠️" : index + 1}</div>
+            <div class="cell number-cell" data-click-target="${index}">${player.alive === false ? '☠️' : index + 1}</div>
             <div class="cell" data-click-target="${index}">
                 <input
                     type="text"
@@ -538,7 +525,12 @@ function renderScreen(){
         choiceBtn.disabled = false;
         choiceBtn.onclick = startNight;
 
-        const hasHistory = mafiaTargetIndex !== null || maniacTargetIndex !== null || commissionerTargetIndex !== null || doctorTargetIndex !== null;
+        const hasHistory =
+            mafiaTargetIndex !== null ||
+            maniacTargetIndex !== null ||
+            commissionerTargetIndex !== null ||
+            doctorTargetIndex !== null;
+
         wakeBlock.style.display = hasHistory ? 'block' : 'none';
         document.getElementById('wakeTitle').textContent = '';
         document.getElementById('actionText').textContent = '';
@@ -551,6 +543,7 @@ function renderScreen(){
 
         choiceBtn.textContent = 'Выбор';
         choiceBtn.onclick = confirmNightChoice;
+
         renderWakeText();
     }
 
@@ -651,7 +644,7 @@ function renderChoiceHistory(){
                 : `— Доктор <span style='color:#888'>не вылечил</span>`
             );
         }
-    } else {
+    }else{
         if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
             history.push(`— Мафия выбрала «${escapeHtml(players[mafiaTargetIndex].name)}»`);
         }
@@ -672,6 +665,14 @@ function renderChoiceHistory(){
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
 }
 
+function updateChoiceButton(){
+    const choiceBtn = document.getElementById('choiceBtn');
+    if(!choiceBtn) return;
+
+    if(gameStarted && gameStage === 'night'){
+        choiceBtn.disabled = selectedTargetIndex === null;
+    }
+}
 
 function hasRequiredStartRoles(){
     return hasRole(ROLE_MAFIA) && hasRole(ROLE_COMMISSIONER) && hasRole(ROLE_DOCTOR);
@@ -679,9 +680,7 @@ function hasRequiredStartRoles(){
 
 function updateStartButton(){
     const startBtn = document.getElementById('startBtn');
-    if(!startBtn){
-        return;
-    }
+    if(!startBtn) return;
 
     if(gameStarted){
         startBtn.disabled = true;
@@ -689,17 +688,6 @@ function updateStartButton(){
     }
 
     startBtn.disabled = !hasRequiredStartRoles();
-}
-
-function updateChoiceButton(){
-    const choiceBtn = document.getElementById('choiceBtn');
-    if(!choiceBtn){
-        return;
-    }
-
-    if(gameStarted && gameStage === 'night'){
-        choiceBtn.disabled = selectedTargetIndex === null;
-    }
 }
 
 function updateName(index, value){
@@ -711,15 +699,13 @@ function updateName(index, value){
 
 function updateRole(index, value){
     if(players[index]){
-        players[index].role = value;
+        players[index].role = normalizeRole(value);
         renderScreen();
     }
 }
 
 function addRow(){
-    if(gameStarted){
-        return;
-    }
+    if(gameStarted) return;
 
     players.push({
         name:'',
@@ -731,9 +717,7 @@ function addRow(){
 }
 
 function removeRow(){
-    if(gameStarted || players.length <= 1){
-        return;
-    }
+    if(gameStarted || players.length <= 1) return;
 
     players.pop();
     renderScreen();
@@ -764,43 +748,24 @@ function startDay(){
     renderScreen();
 }
 
+function getNextAliveRole(afterRole){
+    const order = [ROLE_MAFIA, ROLE_MANIAC, ROLE_COMMISSIONER, ROLE_DOCTOR];
 
-function goToNextNightRole(afterRole){
-    if(afterRole === null){
-        if(hasAliveRole(ROLE_MAFIA)){
-            startRoleWake(ROLE_MAFIA);
-            return;
-        }
+    let startIndex = -1;
 
-        afterRole = ROLE_MAFIA;
+    if(afterRole !== null){
+        startIndex = order.indexOf(afterRole);
     }
 
-    if(afterRole === ROLE_MAFIA){
-        if(hasAliveRole(ROLE_MANIAC)){
-            startRoleWake(ROLE_MANIAC);
-            return;
-        }
+    for(let i = startIndex + 1; i < order.length; i++){
+        const role = order[i];
 
-        afterRole = ROLE_MANIAC;
-    }
-
-    if(afterRole === ROLE_MANIAC){
-        if(hasAliveRole(ROLE_COMMISSIONER)){
-            startRoleWake(ROLE_COMMISSIONER);
-            return;
-        }
-
-        afterRole = ROLE_COMMISSIONER;
-    }
-
-    if(afterRole === ROLE_COMMISSIONER){
-        if(hasAliveRole(ROLE_DOCTOR)){
-            startRoleWake(ROLE_DOCTOR);
-            return;
+        if(hasAliveRole(role)){
+            return role;
         }
     }
 
-    startMorning();
+    return null;
 }
 
 function startNight(){
@@ -813,27 +778,50 @@ function startNight(){
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
 
-    goToNextNightRole(null);
+    const nextRole = getNextAliveRole(null);
+
+    if(nextRole){
+        startRoleWake(nextRole);
+    }else{
+        startMorning();
+    }
 }
 
-function startManiacWake(){
-    activeWakeRole = ROLE_MANIAC;
+function startRoleWake(role){
+    activeWakeRole = role;
     selectedTargetIndex = null;
     renderScreen();
 }
 
-function startCommissionerWake(){
-    activeWakeRole = ROLE_COMMISSIONER;
-    selectedTargetIndex = null;
-    renderScreen();
-}
+function confirmNightChoice(){
+    if(selectedTargetIndex === null) return;
 
-function startDoctorWake(){
-    activeWakeRole = ROLE_DOCTOR;
-    selectedTargetIndex = null;
-    renderScreen();
-}
+    if(activeWakeRole === ROLE_MAFIA){
+        mafiaTargetIndex = selectedTargetIndex;
+    }
 
+    if(activeWakeRole === ROLE_MANIAC){
+        maniacTargetIndex = selectedTargetIndex;
+    }
+
+    if(activeWakeRole === ROLE_COMMISSIONER){
+        commissionerTargetIndex = selectedTargetIndex;
+    }
+
+    if(activeWakeRole === ROLE_DOCTOR){
+        doctorTargetIndex = selectedTargetIndex;
+        previousDoctorTargetIndex = selectedTargetIndex;
+    }
+
+    const currentRole = activeWakeRole;
+    const nextRole = getNextAliveRole(currentRole);
+
+    if(nextRole){
+        startRoleWake(nextRole);
+    }else{
+        startMorning();
+    }
+}
 
 function applyNightResults(){
     const killedIndexes = [];
@@ -863,14 +851,10 @@ function startMorning(){
 }
 
 function choosePlayer(index){
-    if(gameStage !== 'night' || !activeWakeRole){
-        return;
-    }
+    if(gameStage !== 'night' || !activeWakeRole) return;
 
     const player = players[index];
-    if(!player){
-        return;
-    }
+    if(!player) return;
 
     if(player.role === activeWakeRole && activeWakeRole !== ROLE_DOCTOR){
         return;
@@ -888,43 +872,12 @@ function choosePlayer(index){
     renderScreen();
 }
 
-function confirmNightChoice(){
-    if(selectedTargetIndex === null){
-        return;
-    }
-
-    if(activeWakeRole === ROLE_MAFIA){
-        mafiaTargetIndex = selectedTargetIndex;
-        goToNextNightRole(ROLE_MAFIA);
-        return;
-    }
-
-    if(activeWakeRole === ROLE_MANIAC){
-        maniacTargetIndex = selectedTargetIndex;
-        goToNextNightRole(ROLE_MANIAC);
-        return;
-    }
-
-    if(activeWakeRole === ROLE_COMMISSIONER){
-        commissionerTargetIndex = selectedTargetIndex;
-        goToNextNightRole(ROLE_COMMISSIONER);
-        return;
-    }
-
-    if(activeWakeRole === ROLE_DOCTOR){
-        doctorTargetIndex = selectedTargetIndex;
-        previousDoctorTargetIndex = selectedTargetIndex;
-        startMorning();
-    }
+function hasRole(role){
+    return players.some(player => player.role === role);
 }
-
 
 function hasAliveRole(role){
     return players.some(player => player.role === role && player.alive !== false);
-}
-
-function hasRole(role){
-    return players.some(player => player.role === role);
 }
 
 function openFinishModal(){
@@ -957,9 +910,7 @@ function finishGame(){
 }
 
 function startDrag(event, index){
-    if(gameStarted){
-        return;
-    }
+    if(gameStarted) return;
 
     event.preventDefault();
     draggedIndex = index;
@@ -982,6 +933,7 @@ function moveDrag(event){
 
     rows.forEach((row, index) => {
         const rect = row.getBoundingClientRect();
+
         if(event.clientY >= rect.top && event.clientY <= rect.bottom){
             foundIndex = index;
         }
@@ -1033,6 +985,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('input', event => {
         const index = event.target.dataset.nameIndex;
+
         if(index !== undefined){
             updateName(Number(index), event.target.value);
         }
@@ -1040,6 +993,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('change', event => {
         const index = event.target.dataset.roleIndex;
+
         if(index !== undefined){
             updateRole(Number(index), event.target.value);
         }
@@ -1047,6 +1001,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('click', event => {
         const cell = event.target.closest('[data-click-target]');
+
         if(!cell){
             return;
         }
@@ -1056,6 +1011,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('pointerdown', event => {
         const handle = event.target.closest('[data-drag-index]');
+
         if(!handle){
             return;
         }
