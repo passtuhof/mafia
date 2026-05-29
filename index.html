@@ -207,6 +207,15 @@ select option:disabled{
     color:white !important;
 }
 
+.doctor-forbidden .cell:not(.drag-cell){
+    opacity:0.55;
+}
+
+.doctor-forbidden input,
+.doctor-forbidden select{
+    opacity:1;
+}
+
 .modal{
     display:none;
     position:fixed;
@@ -312,6 +321,7 @@ let mafiaTargetIndex = null;
 let maniacTargetIndex = null;
 let commissionerTargetIndex = null;
 let doctorTargetIndex = null;
+let previousDoctorTargetIndex = null;
 let draggedIndex = null;
 let currentOverIndex = null;
 
@@ -358,7 +368,8 @@ function saveState(){
             mafiaTargetIndex,
             maniacTargetIndex,
             commissionerTargetIndex,
-            doctorTargetIndex
+            doctorTargetIndex,
+            previousDoctorTargetIndex
         }));
     }catch(error){}
 }
@@ -381,6 +392,7 @@ function loadState(){
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
         commissionerTargetIndex = Number.isInteger(state.commissionerTargetIndex) ? state.commissionerTargetIndex : null;
         doctorTargetIndex = Number.isInteger(state.doctorTargetIndex) ? state.doctorTargetIndex : null;
+        previousDoctorTargetIndex = Number.isInteger(state.previousDoctorTargetIndex) ? state.previousDoctorTargetIndex : null;
     }catch(error){
         players = makeDefaultPlayers();
         gameStarted = false;
@@ -391,6 +403,7 @@ function loadState(){
         maniacTargetIndex = null;
         commissionerTargetIndex = null;
         doctorTargetIndex = null;
+        previousDoctorTargetIndex = null;
     }
 }
 
@@ -444,6 +457,11 @@ function renderTable(){
         const isActiveRole = gameStage === 'night' && activeWakeRole && player.role === activeWakeRole;
         const isTarget = gameStage === 'night' && selectedTargetIndex === index;
         const isDead = player.alive === false;
+        const isDoctorForbidden = gameStage === 'night' && activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index;
+
+        if(isDoctorForbidden){
+            row.classList.add('doctor-forbidden');
+        }
 
         if(isDead){
             row.classList.add('dead-player');
@@ -726,6 +744,7 @@ function startDay(){
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
+    previousDoctorTargetIndex = null;
 
     renderScreen();
 }
@@ -806,6 +825,10 @@ function choosePlayer(index){
         return;
     }
 
+    if(activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index){
+        return;
+    }
+
     selectedTargetIndex = index;
     renderScreen();
 }
@@ -859,6 +882,7 @@ function confirmNightChoice(){
 
     if(activeWakeRole === ROLE_DOCTOR){
         doctorTargetIndex = selectedTargetIndex;
+        previousDoctorTargetIndex = selectedTargetIndex;
         startMorning();
     }
 }
@@ -884,6 +908,7 @@ function finishGame(){
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
+    previousDoctorTargetIndex = null;
 
     players = players.map(player => ({
         name:player.name,
