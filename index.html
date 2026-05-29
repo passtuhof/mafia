@@ -295,6 +295,7 @@ let selectedTargetIndex = null;
 let mafiaTargetIndex = null;
 let maniacTargetIndex = null;
 let commissionerTargetIndex = null;
+let doctorTargetIndex = null;
 let draggedIndex = null;
 let currentOverIndex = null;
 
@@ -328,7 +329,8 @@ function saveState(){
             selectedTargetIndex,
             mafiaTargetIndex,
             maniacTargetIndex,
-            commissionerTargetIndex
+            commissionerTargetIndex,
+            doctorTargetIndex
         }));
     }catch(error){}
 }
@@ -350,6 +352,7 @@ function loadState(){
         mafiaTargetIndex = Number.isInteger(state.mafiaTargetIndex) ? state.mafiaTargetIndex : null;
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
         commissionerTargetIndex = Number.isInteger(state.commissionerTargetIndex) ? state.commissionerTargetIndex : null;
+        doctorTargetIndex = Number.isInteger(state.doctorTargetIndex) ? state.doctorTargetIndex : null;
     }catch(error){
         players = makeDefaultPlayers();
         gameStarted = false;
@@ -359,6 +362,7 @@ function loadState(){
         mafiaTargetIndex = null;
         maniacTargetIndex = null;
         commissionerTargetIndex = null;
+        doctorTargetIndex = null;
     }
 }
 
@@ -448,11 +452,16 @@ function renderScreen(){
         phaseTitle.textContent = 'Сейчас день';
         startButtons.style.display = 'none';
         gameButtons.style.display = 'flex';
-        wakeBlock.style.display = 'none';
 
         choiceBtn.textContent = 'Ночь';
         choiceBtn.disabled = false;
         choiceBtn.onclick = startNight;
+
+        const hasHistory = mafiaTargetIndex !== null || maniacTargetIndex !== null || commissionerTargetIndex !== null || doctorTargetIndex !== null;
+        wakeBlock.style.display = hasHistory ? 'block' : 'none';
+        document.getElementById('wakeTitle').textContent = '';
+        document.getElementById('actionText').textContent = '';
+        renderChoiceHistory();
     }else if(gameStage === 'night'){
         phaseTitle.textContent = 'Сейчас ночь';
         startButtons.style.display = 'none';
@@ -481,6 +490,9 @@ function renderWakeText(){
     }else if(activeWakeRole === ROLE_COMMISSIONER){
         wakeTitle.textContent = 'Просыпается Комиссар...';
         actionText.textContent = 'Комиссар делает выбор (нажмите на игрока)';
+    }else if(activeWakeRole === ROLE_DOCTOR){
+        wakeTitle.textContent = 'Просыпается Доктор...';
+        actionText.textContent = 'Доктор делает выбор (нажмите на игрока)';
     }else{
         wakeTitle.textContent = '';
         actionText.textContent = '';
@@ -502,6 +514,10 @@ function renderChoiceHistory(){
 
     if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
         history.push(`— Комиссар выбрал «${escapeHtml(players[commissionerTargetIndex].name)}»`);
+    }
+
+    if(doctorTargetIndex !== null && players[doctorTargetIndex]){
+        history.push(`— Доктор выбрал «${escapeHtml(players[doctorTargetIndex].name)}»`);
     }
 
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
@@ -569,6 +585,7 @@ function startDay(){
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
+    doctorTargetIndex = null;
 
     renderScreen();
 }
@@ -580,6 +597,7 @@ function startNight(){
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
+    doctorTargetIndex = null;
 
     renderScreen();
 }
@@ -592,6 +610,12 @@ function startManiacWake(){
 
 function startCommissionerWake(){
     activeWakeRole = ROLE_COMMISSIONER;
+    selectedTargetIndex = null;
+    renderScreen();
+}
+
+function startDoctorWake(){
+    activeWakeRole = ROLE_DOCTOR;
     selectedTargetIndex = null;
     renderScreen();
 }
@@ -637,6 +661,8 @@ function confirmNightChoice(){
             startManiacWake();
         }else if(hasRole(ROLE_COMMISSIONER)){
             startCommissionerWake();
+        }else if(hasRole(ROLE_DOCTOR)){
+            startDoctorWake();
         }else{
             startMorning();
         }
@@ -649,6 +675,8 @@ function confirmNightChoice(){
 
         if(hasRole(ROLE_COMMISSIONER)){
             startCommissionerWake();
+        }else if(hasRole(ROLE_DOCTOR)){
+            startDoctorWake();
         }else{
             startMorning();
         }
@@ -658,6 +686,18 @@ function confirmNightChoice(){
 
     if(activeWakeRole === ROLE_COMMISSIONER){
         commissionerTargetIndex = selectedTargetIndex;
+
+        if(hasRole(ROLE_DOCTOR)){
+            startDoctorWake();
+        }else{
+            startMorning();
+        }
+
+        return;
+    }
+
+    if(activeWakeRole === ROLE_DOCTOR){
+        doctorTargetIndex = selectedTargetIndex;
         startMorning();
     }
 }
@@ -682,6 +722,7 @@ function finishGame(){
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
+    doctorTargetIndex = null;
 
     players = players.map(player => ({
         name:player.name,
