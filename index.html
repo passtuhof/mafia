@@ -134,6 +134,11 @@ select:disabled{
     cursor:not-allowed;
 }
 
+select option:disabled{
+    color:#777;
+    background:#2a2a2a;
+}
+
 .small-btn{
     width:50px;
     padding:0;
@@ -374,7 +379,7 @@ function escapeHtml(value){
         .replaceAll('>','&gt;');
 }
 
-function getRoleOptions(selectedRole){
+function getRoleOptions(selectedRole, playerIndex){
     const roles = [
         ROLE_CIVILIAN,
         ROLE_MAFIA,
@@ -383,7 +388,21 @@ function getRoleOptions(selectedRole){
         ROLE_MANIAC
     ];
 
-    return roles.map(role => `<option value="${escapeHtml(role)}" ${role === selectedRole ? 'selected' : ''}>${escapeHtml(role)}</option>`).join('');
+    const commissionerTakenByOther = players.some((player, index) =>
+        index !== playerIndex && player.role === ROLE_COMMISSIONER
+    );
+
+    const doctorTakenByOther = players.some((player, index) =>
+        index !== playerIndex && player.role === ROLE_DOCTOR
+    );
+
+    return roles.map(role => {
+        const shouldDisable =
+            (role === ROLE_COMMISSIONER && commissionerTakenByOther && selectedRole !== ROLE_COMMISSIONER) ||
+            (role === ROLE_DOCTOR && doctorTakenByOther && selectedRole !== ROLE_DOCTOR);
+
+        return `<option value="${escapeHtml(role)}" ${role === selectedRole ? 'selected' : ''} ${shouldDisable ? 'disabled' : ''}>${escapeHtml(role)}</option>`;
+    }).join('');
 }
 
 function getRoleName(role){
@@ -422,7 +441,7 @@ function renderTable(){
             </div>
             <div class="cell" data-click-target="${index}">
                 <select ${gameStarted ? 'disabled' : ''} data-role-index="${index}">
-                    ${getRoleOptions(player.role)}
+                    ${getRoleOptions(player.role, index)}
                 </select>
             </div>
             <div class="drag-cell">
@@ -434,6 +453,7 @@ function renderTable(){
     });
 
     updateChoiceButton();
+    updateStartButton();
 }
 
 function renderScreen(){
@@ -540,6 +560,25 @@ function renderChoiceHistory(){
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
 }
 
+
+function hasRequiredStartRoles(){
+    return hasRole(ROLE_MAFIA) && hasRole(ROLE_COMMISSIONER) && hasRole(ROLE_DOCTOR);
+}
+
+function updateStartButton(){
+    const startBtn = document.getElementById('startBtn');
+    if(!startBtn){
+        return;
+    }
+
+    if(gameStarted){
+        startBtn.disabled = true;
+        return;
+    }
+
+    startBtn.disabled = !hasRequiredStartRoles();
+}
+
 function updateChoiceButton(){
     const choiceBtn = document.getElementById('choiceBtn');
     if(!choiceBtn){
@@ -561,7 +600,7 @@ function updateName(index, value){
 function updateRole(index, value){
     if(players[index]){
         players[index].role = value;
-        saveState();
+        renderScreen();
     }
 }
 
@@ -589,6 +628,11 @@ function removeRow(){
 }
 
 function startDay(){
+    if(!hasRequiredStartRoles()){
+        updateStartButton();
+        return;
+    }
+
     const filledPlayers = players.filter(player => player.name.trim() !== '');
 
     if(filledPlayers.length > 0){
