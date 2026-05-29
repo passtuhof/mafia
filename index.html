@@ -503,21 +503,38 @@ function renderWakeText(){
 
 function renderChoiceHistory(){
     const history = [];
+    const isDaySummary = gameStarted && gameStage === 'day';
 
     if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
-        history.push(`— Мафия убила «${escapeHtml(players[mafiaTargetIndex].name)}»`);
+        const name = escapeHtml(players[mafiaTargetIndex].name);
+        history.push(isDaySummary
+            ? `— Мафия убила «${name}»`
+            : `— Мафия выбрала «${name}»`
+        );
     }
 
     if(maniacTargetIndex !== null && players[maniacTargetIndex]){
-        history.push(`— Маньяк убил «${escapeHtml(players[maniacTargetIndex].name)}»`);
+        const name = escapeHtml(players[maniacTargetIndex].name);
+        history.push(isDaySummary
+            ? `— Маньяк убил «${name}»`
+            : `— Маньяк выбрал «${name}»`
+        );
     }
 
     if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
-        history.push(`— Комиссар проверил «${escapeHtml(players[commissionerTargetIndex].name)}»`);
+        const name = escapeHtml(players[commissionerTargetIndex].name);
+        history.push(isDaySummary
+            ? `— Комиссар проверил «${name}»`
+            : `— Комиссар выбрал «${name}»`
+        );
     }
 
     if(doctorTargetIndex !== null && players[doctorTargetIndex]){
-        history.push(`— Доктор вылечил «${escapeHtml(players[doctorTargetIndex].name)}»`);
+        const name = escapeHtml(players[doctorTargetIndex].name);
+        history.push(isDaySummary
+            ? `— Доктор вылечил «${name}»`
+            : `— Доктор выбрал «${name}»`
+        );
     }
 
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
