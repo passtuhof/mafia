@@ -543,8 +543,14 @@ function renderChoiceHistory(){
 
     if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
         const name = escapeHtml(players[commissionerTargetIndex].name);
+        const checkedRole = players[commissionerTargetIndex].role;
+        const isActiveRole = checkedRole === ROLE_MAFIA || checkedRole === ROLE_MANIAC;
+
         history.push(isDaySummary
-            ? `— Комиссар проверил «${name}»`
+            ? (isActiveRole
+                ? `— Комиссар проверил активную роль «${name}»`
+                : `— Комиссар проверил неактивную роль «${name}»`
+              )
             : `— Комиссар выбрал «${name}»`
         );
     }
