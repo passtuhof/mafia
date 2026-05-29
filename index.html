@@ -115,7 +115,8 @@ select:disabled{
     display:flex;
     gap:10px;
     margin-top:15px;
-    flex-wrap:nowrap;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
 }
 
 .main-btn{
@@ -128,6 +129,7 @@ select:disabled{
     color:white;
     padding:0 14px;
     white-space:nowrap;
+    width:100%;
 }
 
 .main-btn:disabled{
@@ -810,6 +812,7 @@ function ensureVoteButton(shouldShow){
         if(!voteBtn){
             voteBtn = document.createElement('button');
             voteBtn.className = 'main-btn choice-btn';
+            voteBtn.style.width='100%';
             voteBtn.id = 'voteBtn';
             voteBtn.textContent = 'Голосование';
             voteBtn.addEventListener('click', startVoting);
@@ -830,6 +833,7 @@ function ensureVotingNightButton(shouldShow){
         if(!votingNightBtn){
             votingNightBtn = document.createElement('button');
             votingNightBtn.className = 'main-btn choice-btn';
+            votingNightBtn.style.width='100%';
             votingNightBtn.id = 'votingNightBtn';
             votingNightBtn.textContent = 'Ночь';
             votingNightBtn.addEventListener('click', startNight);
