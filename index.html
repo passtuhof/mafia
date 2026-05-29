@@ -37,7 +37,7 @@ h1{
 
 .player-row{
     display:grid;
-    grid-template-columns:minmax(0, 1fr) 34px;
+    grid-template-columns:minmax(0,1fr) 34px;
     gap:6px;
     align-items:stretch;
     margin-bottom:-1px;
@@ -53,16 +53,19 @@ table{
     table-layout:fixed;
 }
 
-th, td{
+th,td{
     border:1px solid #444;
     padding:8px;
     height:48px;
 }
 
-th{background:#222;}
+th{
+    background:#222;
+    text-align:center;
+}
 
 .col-number{
-    width:30px;
+    width:34px;
     text-align:center;
 }
 
@@ -70,7 +73,7 @@ th{background:#222;}
     width:170px;
 }
 
-input, select{
+input,select{
     width:100%;
     background:#1d1d1d;
     color:white;
@@ -85,6 +88,7 @@ select:disabled{
     opacity:1;
     color:white;
     background:#1d1d1d;
+    pointer-events:none;
 }
 
 .drag-handle{
@@ -120,11 +124,19 @@ select:disabled{
     padding:0 18px;
 }
 
-.small-btn{width:50px;}
+.main-btn:disabled{
+    background:#555;
+    cursor:not-allowed;
+}
+
+.small-btn{
+    width:50px;
+}
 
 .day-btn,
 .night-btn,
-.finish-btn{
+.finish-btn,
+.choice-btn{
     font-size:18px;
     font-weight:bold;
 }
@@ -139,37 +151,19 @@ select:disabled{
     margin-bottom:10px;
 }
 
-.wake-buttons{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-}
-
-.wake-role-btn{
-    height:46px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    background:#333;
-    color:white;
-    font-size:17px;
-    font-weight:bold;
-    padding:0 16px;
-}
-
 .action-text{
     color:#d60000;
     font-size:18px;
     font-weight:bold;
 }
 
-.mafia-highlight td{
+.role-highlight td{
     background:#e5c100 !important;
     color:#111 !important;
 }
 
-.mafia-highlight input,
-.mafia-highlight select{
+.role-highlight input,
+.role-highlight select{
     background:#e5c100 !important;
     color:#111 !important;
 }
@@ -258,13 +252,13 @@ select:disabled{
 </div>
 
 <div class="buttons" id="gameButtons" style="display:none;">
-    <button class="main-btn night-btn" id="nightMorningBtn" onclick="startNight()">Ночь</button>
+    <button class="main-btn choice-btn" id="choiceBtn" onclick="confirmNightChoice()" disabled>Выбор</button>
     <button class="main-btn finish-btn" onclick="openFinishModal()">Завершить</button>
 </div>
 
 <div class="wake-block" id="wakeBlock" style="display:none;">
-    <div class="wake-title" id="wakeTitle">Кто просыпается?</div>
-    <div class="wake-buttons" id="wakeButtons"></div>
+    <div class="wake-title" id="wakeTitle">Просыпается Мафия...</div>
+    <div class="action-text" id="actionText">Мафия делает выбор (нажмите на игрока)</div>
 </div>
 
 <div class="modal" id="finishModal">
@@ -273,16 +267,6 @@ select:disabled{
         <div class="modal-buttons">
             <button class="yes-btn" onclick="finishGame()">Да</button>
             <button class="no-btn" onclick="closeFinishModal()">Нет</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="mafiaChoiceModal">
-    <div class="modal-content">
-        <p id="mafiaChoiceText"></p>
-        <div class="modal-buttons">
-            <button class="yes-btn" onclick="confirmMafiaChoice()">Да</button>
-            <button class="no-btn" onclick="cancelMafiaChoice()">Нет</button>
         </div>
     </div>
 </div>
@@ -297,13 +281,15 @@ let currentOverIndex = null;
 
 let activeWakeRole = null;
 let selectedTargetIndex = null;
+
 let mafiaTargetIndex = null;
+let maniacTargetIndex = null;
 
 for(let i = 0; i < 10; i++){
     players.push({
-        name: '',
-        role: '👤 Мирный',
-        alive: true
+        name:'',
+        role:'👤 Мирный',
+        alive:true
     });
 }
 
@@ -325,19 +311,22 @@ function renderTable(){
     const grid = document.getElementById('playersGrid');
     grid.querySelectorAll('.data-row').forEach(row => row.remove());
 
-    players.forEach((player, index) => {
+    players.forEach((player,index)=>{
         const wrapper = document.createElement('div');
         wrapper.className = 'player-row data-row';
         wrapper.dataset.index = index;
 
-        const isMafiaActive = activeWakeRole === '🔫 Мафия' && player.role === '🔫 Мафия';
+        const isActiveRole =
+            activeWakeRole &&
+            player.role === activeWakeRole;
+
         const isTarget = selectedTargetIndex === index;
 
         wrapper.innerHTML = `
             <table>
                 <tbody>
                     <tr 
-                        class="${isTarget ? 'target-highlight' : ''} ${isMafiaActive ? 'mafia-highlight' : ''}" 
+                        class="${isActiveRole ? 'role-highlight' : ''} ${isTarget ? 'target-highlight' : ''}"
                         onclick="choosePlayer(${index})"
                     >
                         <td class="col-number">${index + 1}</td>
@@ -348,7 +337,6 @@ function renderTable(){
                                 value="${escapeHtml(player.name)}"
                                 ${gameStarted ? 'disabled' : ''}
                                 oninput="updateName(${index}, this.value)"
-                                onclick="choosePlayer(${index})"
                             >
                         </td>
 
@@ -356,7 +344,6 @@ function renderTable(){
                             <select
                                 ${gameStarted ? 'disabled' : ''}
                                 onchange="updateRole(${index}, this.value)"
-                                onclick="choosePlayer(${index})"
                             >
                                 ${roleOptions(player.role)}
                             </select>
@@ -374,31 +361,33 @@ function renderTable(){
 
 function escapeHtml(text){
     return text
-        .replaceAll('&', '&amp;')
-        .replaceAll('"', '&quot;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;');
+        .replaceAll('&','&amp;')
+        .replaceAll('"','&quot;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;');
 }
 
-function updateName(index, value){
+function updateName(index,value){
     players[index].name = value;
 }
 
-function updateRole(index, value){
+function updateRole(index,value){
     players[index].role = value;
 }
 
 function addRow(){
     players.push({
-        name: '',
-        role: '👤 Мирный',
-        alive: true
+        name:'',
+        role:'👤 Мирный',
+        alive:true
     });
+
     renderTable();
 }
 
 function removeRow(){
     if(players.length <= 1) return;
+
     players.pop();
     renderTable();
 }
@@ -416,24 +405,92 @@ function startDay(){
     document.getElementById('gameButtons').style.display = 'flex';
     document.getElementById('wakeBlock').style.display = 'none';
 
-    document.getElementById('nightMorningBtn').textContent = 'Ночь';
-    document.getElementById('nightMorningBtn').onclick = startNight;
+    document.getElementById('choiceBtn').textContent = 'Ночь';
+    document.getElementById('choiceBtn').disabled = false;
+    document.getElementById('choiceBtn').onclick = startNight;
 
     renderTable();
 }
 
 function startNight(){
-
     gameStage = 'night';
 
     document.getElementById('phaseTitle').textContent = 'Сейчас ночь';
-
-    document.getElementById('nightMorningBtn').textContent = 'Утро';
-    document.getElementById('nightMorningBtn').onclick = startMorning;
-
     document.getElementById('wakeBlock').style.display = 'block';
 
     startMafiaWake();
+}
+
+function startMafiaWake(){
+    activeWakeRole = '🔫 Мафия';
+    selectedTargetIndex = null;
+
+    document.getElementById('wakeTitle').textContent = 'Просыпается Мафия...';
+    document.getElementById('actionText').textContent = 'Мафия делает выбор (нажмите на игрока)';
+
+    const choiceBtn = document.getElementById('choiceBtn');
+    choiceBtn.textContent = 'Выбор';
+    choiceBtn.disabled = true;
+    choiceBtn.onclick = confirmNightChoice;
+
+    renderTable();
+}
+
+function startManiacWake(){
+    activeWakeRole = '🔪 Маньяк';
+    selectedTargetIndex = null;
+
+    document.getElementById('wakeTitle').textContent = 'Просыпается Маньяк...';
+    document.getElementById('actionText').textContent = 'Маньяк делает выбор (нажмите на игрока)';
+
+    const choiceBtn = document.getElementById('choiceBtn');
+    choiceBtn.textContent = 'Выбор';
+    choiceBtn.disabled = true;
+    choiceBtn.onclick = confirmNightChoice;
+
+    renderTable();
+}
+
+function choosePlayer(index){
+    if(gameStage !== 'night') return;
+    if(!activeWakeRole) return;
+
+    const player = players[index];
+
+    if(player.role === activeWakeRole) return;
+    if(player.alive === false) return;
+
+    selectedTargetIndex = index;
+
+    const choiceBtn = document.getElementById('choiceBtn');
+    choiceBtn.disabled = false;
+
+    renderTable();
+}
+
+function confirmNightChoice(){
+    if(selectedTargetIndex === null) return;
+
+    if(activeWakeRole === '🔫 Мафия'){
+        mafiaTargetIndex = selectedTargetIndex;
+
+        if(hasRole('🔪 Маньяк')){
+            startManiacWake();
+        }else{
+            startMorning();
+        }
+
+        return;
+    }
+
+    if(activeWakeRole === '🔪 Маньяк'){
+        maniacTargetIndex = selectedTargetIndex;
+        startMorning();
+    }
+}
+
+function hasRole(role){
+    return players.some(player => player.role === role);
 }
 
 function startMorning(){
@@ -442,56 +499,14 @@ function startMorning(){
     selectedTargetIndex = null;
 
     document.getElementById('phaseTitle').textContent = 'Сейчас день';
-    document.getElementById('nightMorningBtn').textContent = 'Ночь';
-    document.getElementById('nightMorningBtn').onclick = startNight;
     document.getElementById('wakeBlock').style.display = 'none';
 
-    renderTable();
-}
-
-
-
-function startMafiaWake(){
-    activeWakeRole = '🔫 Мафия';
-    selectedTargetIndex = null;
-
-    document.getElementById('wakeTitle').textContent = 'Просыпается Мафия…';
-
-    document.getElementById('wakeButtons').innerHTML = `
-        <div class="action-text">
-            Мафия делает выбор (нажмите на игрока)
-        </div>
-    `;
+    const choiceBtn = document.getElementById('choiceBtn');
+    choiceBtn.textContent = 'Ночь';
+    choiceBtn.disabled = false;
+    choiceBtn.onclick = startNight;
 
     renderTable();
-}
-
-function choosePlayer(index){
-    if(activeWakeRole !== '🔫 Мафия') return;
-
-    const player = players[index];
-
-    if(player.role === '🔫 Мафия') return;
-    if(player.alive === false) return;
-
-    selectedTargetIndex = index;
-    renderTable();
-
-    document.getElementById('mafiaChoiceText').textContent =
-        `Мафия выбирает «${player.name}»`;
-
-    document.getElementById('mafiaChoiceModal').style.display = 'flex';
-}
-
-function cancelMafiaChoice(){
-    selectedTargetIndex = null;
-    document.getElementById('mafiaChoiceModal').style.display = 'none';
-    renderTable();
-}
-
-function confirmMafiaChoice(){
-    mafiaTargetIndex = selectedTargetIndex;
-    document.getElementById('mafiaChoiceModal').style.display = 'none';
 }
 
 function openFinishModal(){
@@ -508,11 +523,12 @@ function finishGame(){
     activeWakeRole = null;
     selectedTargetIndex = null;
     mafiaTargetIndex = null;
+    maniacTargetIndex = null;
 
     players = players.map(player => ({
-        name: player.name,
-        role: '👤 Мирный',
-        alive: true
+        name:player.name,
+        role:'👤 Мирный',
+        alive:true
     }));
 
     document.getElementById('phaseTitle').textContent = 'Знакомство';
@@ -520,14 +536,11 @@ function finishGame(){
     document.getElementById('gameButtons').style.display = 'none';
     document.getElementById('wakeBlock').style.display = 'none';
 
-    document.getElementById('nightMorningBtn').textContent = 'Ночь';
-    document.getElementById('nightMorningBtn').onclick = startNight;
-
     closeFinishModal();
     renderTable();
 }
 
-function startDrag(event, index){
+function startDrag(event,index){
     if(gameStarted) return;
 
     event.preventDefault();
@@ -545,10 +558,9 @@ function startDrag(event, index){
 
 function moveDrag(event){
     const rows = Array.from(document.querySelectorAll('.data-row'));
-
     let foundIndex = null;
 
-    rows.forEach((row, index) => {
+    rows.forEach((row,index)=>{
         const rect = row.getBoundingClientRect();
 
         if(event.clientY >= rect.top && event.clientY <= rect.bottom){
@@ -572,8 +584,8 @@ function endDrag(event){
         currentOverIndex !== null &&
         draggedIndex !== currentOverIndex
     ){
-        const movedPlayer = players.splice(draggedIndex, 1)[0];
-        players.splice(currentOverIndex, 0, movedPlayer);
+        const movedPlayer = players.splice(draggedIndex,1)[0];
+        players.splice(currentOverIndex,0,movedPlayer);
     }
 
     draggedIndex = null;
