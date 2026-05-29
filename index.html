@@ -557,8 +557,15 @@ function renderChoiceHistory(){
 
     if(doctorTargetIndex !== null && players[doctorTargetIndex]){
         const name = escapeHtml(players[doctorTargetIndex].name);
+        const doctorSavedSomeone =
+            doctorTargetIndex === mafiaTargetIndex ||
+            doctorTargetIndex === maniacTargetIndex;
+
         history.push(isDaySummary
-            ? `— Доктор вылечил «${name}»`
+            ? (doctorSavedSomeone
+                ? `— Доктор вылечил <span style='color:#2ecc71'>игрока</span>`
+                : `— Доктор <span style='color:#888'>никого</span> не вылечил`
+              )
             : `— Доктор выбрал «${name}»`
         );
     }
