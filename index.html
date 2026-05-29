@@ -41,9 +41,9 @@ th{
 }
 
 .col-number{
-    width:38px;
-    min-width:38px;
-    max-width:38px;
+    width:34px;
+    min-width:34px;
+    max-width:34px;
     text-align:center;
 }
 
@@ -55,7 +55,14 @@ th{
     width:180px;
 }
 
-input{
+.col-drag{
+    width:34px;
+    min-width:34px;
+    max-width:34px;
+    text-align:center;
+}
+
+input, select{
     width:100%;
     background:#1d1d1d;
     color:white;
@@ -65,14 +72,11 @@ input{
     outline:none;
 }
 
-select{
-    width:100%;
-    background:#1d1d1d;
+input:disabled,
+select:disabled{
+    opacity:1;
     color:white;
-    border:none;
-    padding:8px;
-    font-size:15px;
-    outline:none;
+    background:#1d1d1d;
 }
 
 .buttons{
@@ -81,18 +85,36 @@ select{
 }
 
 button{
-    width:50px;
     height:50px;
-    font-size:28px;
+    font-size:24px;
     border:none;
     border-radius:10px;
     cursor:pointer;
     background:#d60000;
     color:white;
+    padding:0 18px;
 }
 
-button:hover{
-    opacity:0.9;
+.small-btn{
+    width:50px;
+}
+
+.play-btn{
+    width:auto;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.drag-handle{
+    cursor:grab;
+    user-select:none;
+    font-size:20px;
+    color:#aaa;
+    touch-action:none;
+}
+
+.dragging{
+    opacity:0.45;
 }
 </style>
 </head>
@@ -101,25 +123,28 @@ button:hover{
 
 <h1>Мафия</h1>
 
-<table id="playersTable">
+<table>
     <thead>
         <tr>
             <th class="col-number">№</th>
             <th class="col-player">Игрок</th>
             <th class="col-role">Роль</th>
+            <th class="col-drag"></th>
         </tr>
     </thead>
     <tbody id="tableBody"></tbody>
 </table>
 
 <div class="buttons">
-    <button onclick="addRow()">+</button>
-    <button onclick="removeRow()">−</button>
+    <button class="small-btn" onclick="addRow()">+</button>
+    <button class="small-btn" onclick="removeRow()">−</button>
+    <button class="play-btn" onclick="startGame()">Играть</button>
 </div>
 
 <script>
-
 let players = [];
+let gameStarted = false;
+let draggedIndex = null;
 
 for(let i = 0; i < 10; i++){
     players.push({
@@ -129,7 +154,6 @@ for(let i = 0; i < 10; i++){
 }
 
 function roleOptions(selectedRole){
-
     const roles = [
         '👤 Мирный',
         '🔫 Мафия',
@@ -139,20 +163,18 @@ function roleOptions(selectedRole){
     ];
 
     return roles.map(role => `
-        <option ${role === selectedRole ? 'selected' : ''}>
-            ${role}
-        </option>
+        <option ${role === selectedRole ? 'selected' : ''}>${role}</option>
     `).join('');
 }
 
 function renderTable(){
-
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
     players.forEach((player, index) => {
-
         const row = document.createElement('tr');
+
+        row.draggable = false;
 
         row.innerHTML = `
             <td class="col-number">${index + 1}</td>
@@ -161,16 +183,36 @@ function renderTable(){
                 <input
                     type="text"
                     value="${player.name}"
+                    ${gameStarted ? 'disabled' : ''}
                     oninput="updateName(${index}, this.value)"
                 >
             </td>
 
             <td>
-                <select onchange="updateRole(${index}, this.value)">
+                <select 
+                    ${gameStarted ? 'disabled' : ''}
+                    onchange="updateRole(${index}, this.value)"
+                >
                     ${roleOptions(player.role)}
                 </select>
             </td>
+
+            <td class="col-drag">
+                <div 
+                    class="drag-handle"
+                    draggable="true"
+                    ondragstart="dragStart(event, ${index})"
+                    ondragover="dragOver(event)"
+                    ondrop="dropRow(event, ${index})"
+                    ondragend="dragEnd(event)"
+                >☰</div>
+            </td>
         `;
+
+        row.ondragover = dragOver;
+        row.ondrop = function(event){
+            dropRow(event, index);
+        };
 
         tbody.appendChild(row);
     });
@@ -185,7 +227,6 @@ function updateRole(index, value){
 }
 
 function addRow(){
-
     players.push({
         name: '',
         role: '👤 Мирный'
@@ -195,18 +236,44 @@ function addRow(){
 }
 
 function removeRow(){
-
-    if(players.length <= 1){
-        return;
-    }
+    if(players.length <= 1) return;
 
     players.pop();
-
     renderTable();
 }
 
-renderTable();
+function startGame(){
+    gameStarted = true;
+    renderTable();
+}
 
+function dragStart(event, index){
+    draggedIndex = index;
+    event.target.closest('tr').classList.add('dragging');
+}
+
+function dragOver(event){
+    event.preventDefault();
+}
+
+function dropRow(event, targetIndex){
+    event.preventDefault();
+
+    if(draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const movedPlayer = players.splice(draggedIndex, 1)[0];
+    players.splice(targetIndex, 0, movedPlayer);
+
+    draggedIndex = null;
+    renderTable();
+}
+
+function dragEnd(event){
+    event.target.closest('tr')?.classList.remove('dragging');
+    draggedIndex = null;
+}
+
+renderTable();
 </script>
 
 </body>
