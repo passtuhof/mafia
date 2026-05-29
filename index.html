@@ -48,10 +48,6 @@ h1{
     margin-bottom:-1px;
 }
 
-.header-row{
-    margin-bottom:-1px;
-}
-
 table{
     width:100%;
     border-collapse:collapse;
@@ -98,10 +94,6 @@ select:disabled{
     background:#1d1d1d;
 }
 
-.drag-space{
-    width:34px;
-}
-
 .drag-handle{
     display:flex;
     align-items:center;
@@ -112,10 +104,6 @@ select:disabled{
     touch-action:none;
     cursor:grab;
     height:48px;
-}
-
-.drag-handle:active{
-    cursor:grabbing;
 }
 
 .dragging-row{
@@ -143,9 +131,60 @@ select:disabled{
     width:50px;
 }
 
-.play-btn{
+.day-btn,
+.night-btn,
+.finish-btn{
     font-size:18px;
     font-weight:bold;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.75);
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+}
+
+.modal-content{
+    background:#1d1d1d;
+    border:1px solid #444;
+    border-radius:16px;
+    padding:22px;
+    width:90%;
+    max-width:320px;
+    text-align:center;
+}
+
+.modal-content p{
+    font-size:22px;
+    margin-bottom:20px;
+}
+
+.modal-buttons{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.modal-buttons button{
+    flex:1;
+    height:48px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+}
+
+.yes-btn{
+    background:#d60000;
+}
+
+.no-btn{
+    background:#333;
 }
 </style>
 </head>
@@ -154,11 +193,10 @@ select:disabled{
 
 <h1>Мафия</h1>
 
-<div class="phase-title">Ночь для знакомства</div>
+<div class="phase-title" id="phaseTitle">Ночь для знакомства</div>
 
 <div class="players-grid" id="playersGrid">
-
-    <div class="player-row header-row">
+    <div class="player-row">
         <table>
             <thead>
                 <tr>
@@ -168,15 +206,29 @@ select:disabled{
                 </tr>
             </thead>
         </table>
-        <div class="drag-space"></div>
+        <div></div>
     </div>
-
 </div>
 
-<div class="buttons">
+<div class="buttons" id="startButtons">
     <button class="main-btn small-btn" onclick="addRow()">+</button>
     <button class="main-btn small-btn" onclick="removeRow()">−</button>
-    <button class="main-btn play-btn" onclick="startGame()">Играть</button>
+    <button class="main-btn day-btn" onclick="startDay()">День</button>
+</div>
+
+<div class="buttons" id="gameButtons" style="display:none;">
+    <button class="main-btn night-btn">Ночь</button>
+    <button class="main-btn finish-btn" onclick="openFinishModal()">Завершить</button>
+</div>
+
+<div class="modal" id="finishModal">
+    <div class="modal-content">
+        <p>Завершить игру?</p>
+        <div class="modal-buttons">
+            <button class="yes-btn" onclick="finishGame()">Да</button>
+            <button class="no-btn" onclick="closeFinishModal()">Нет</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -209,7 +261,6 @@ function roleOptions(selectedRole){
 
 function renderTable(){
     const grid = document.getElementById('playersGrid');
-
     const oldRows = grid.querySelectorAll('.data-row');
     oldRows.forEach(row => row.remove());
 
@@ -289,12 +340,38 @@ function removeRow(){
     renderTable();
 }
 
-function startGame(){
+function startDay(){
     gameStarted = true;
+
+    document.getElementById('phaseTitle').textContent = 'Сейчас день';
+    document.getElementById('startButtons').style.display = 'none';
+    document.getElementById('gameButtons').style.display = 'flex';
+
+    renderTable();
+}
+
+function openFinishModal(){
+    document.getElementById('finishModal').style.display = 'flex';
+}
+
+function closeFinishModal(){
+    document.getElementById('finishModal').style.display = 'none';
+}
+
+function finishGame(){
+    gameStarted = false;
+
+    document.getElementById('phaseTitle').textContent = 'Ночь для знакомства';
+    document.getElementById('startButtons').style.display = 'flex';
+    document.getElementById('gameButtons').style.display = 'none';
+
+    closeFinishModal();
     renderTable();
 }
 
 function startDrag(event, index){
+    if(gameStarted) return;
+
     event.preventDefault();
 
     draggedIndex = index;
