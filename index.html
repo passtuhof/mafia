@@ -25,15 +25,26 @@ h1{
     color:#d60000;
 }
 
+.table-wrap{
+    width:100%;
+}
+
+.row-wrap{
+    display:flex;
+    align-items:stretch;
+    margin-bottom:-1px;
+}
+
 table{
     width:100%;
     border-collapse:collapse;
-    margin-bottom:15px;
+    table-layout:fixed;
 }
 
 th, td{
     border:1px solid #444;
     padding:8px;
+    height:48px;
 }
 
 th{
@@ -41,9 +52,7 @@ th{
 }
 
 .col-number{
-    width:34px;
-    min-width:34px;
-    max-width:34px;
+    width:32px;
     text-align:center;
 }
 
@@ -52,14 +61,7 @@ th{
 }
 
 .col-role{
-    width:180px;
-}
-
-.col-drag{
-    width:34px;
-    min-width:34px;
-    max-width:34px;
-    text-align:center;
+    width:170px;
 }
 
 input, select{
@@ -79,12 +81,30 @@ select:disabled{
     background:#1d1d1d;
 }
 
+.drag-btn{
+    width:34px;
+    margin-left:6px;
+    border:1px solid #444;
+    background:#1d1d1d;
+    color:#aaa;
+    font-size:20px;
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    border-radius:6px;
+}
+
+.dragging{
+    opacity:0.4;
+}
+
 .buttons{
     display:flex;
     gap:10px;
+    margin-top:15px;
 }
 
-button{
+.main-btn{
     height:50px;
     font-size:24px;
     border:none;
@@ -100,21 +120,8 @@ button{
 }
 
 .play-btn{
-    width:auto;
     font-size:18px;
     font-weight:bold;
-}
-
-.drag-handle{
-    cursor:grab;
-    user-select:none;
-    font-size:20px;
-    color:#aaa;
-    touch-action:none;
-}
-
-.dragging{
-    opacity:0.45;
 }
 </style>
 </head>
@@ -123,28 +130,37 @@ button{
 
 <h1>Мафия</h1>
 
-<table>
-    <thead>
-        <tr>
-            <th class="col-number">№</th>
-            <th class="col-player">Игрок</th>
-            <th class="col-role">Роль</th>
-            <th class="col-drag"></th>
-        </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
+<div class="table-wrap">
+
+    <div class="row-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-number">№</th>
+                    <th class="col-player">Игрок</th>
+                    <th class="col-role">Роль</th>
+                </tr>
+            </thead>
+        </table>
+        <div style="width:40px;margin-left:6px;"></div>
+    </div>
+
+    <div id="tableBody"></div>
+
+</div>
 
 <div class="buttons">
-    <button class="small-btn" onclick="addRow()">+</button>
-    <button class="small-btn" onclick="removeRow()">−</button>
-    <button class="play-btn" onclick="startGame()">Играть</button>
+    <button class="main-btn small-btn" onclick="addRow()">+</button>
+    <button class="main-btn small-btn" onclick="removeRow()">−</button>
+    <button class="main-btn play-btn" onclick="startGame()">Играть</button>
 </div>
 
 <script>
 let players = [];
 let gameStarted = false;
+
 let draggedIndex = null;
+let currentOverIndex = null;
 
 for(let i = 0; i < 10; i++){
     players.push({
@@ -168,54 +184,55 @@ function roleOptions(selectedRole){
 }
 
 function renderTable(){
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
+    const body = document.getElementById('tableBody');
+    body.innerHTML = '';
 
     players.forEach((player, index) => {
-        const row = document.createElement('tr');
+        const rowWrap = document.createElement('div');
+        rowWrap.className = 'row-wrap';
+        rowWrap.dataset.index = index;
 
-        row.draggable = false;
+        rowWrap.innerHTML = `
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="col-number">${index + 1}</td>
+                        <td class="col-player">
+                            <input
+                                type="text"
+                                value="${escapeHtml(player.name)}"
+                                ${gameStarted ? 'disabled' : ''}
+                                oninput="updateName(${index}, this.value)"
+                            >
+                        </td>
+                        <td class="col-role">
+                            <select 
+                                ${gameStarted ? 'disabled' : ''}
+                                onchange="updateRole(${index}, this.value)"
+                            >
+                                ${roleOptions(player.role)}
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-        row.innerHTML = `
-            <td class="col-number">${index + 1}</td>
-
-            <td>
-                <input
-                    type="text"
-                    value="${player.name}"
-                    ${gameStarted ? 'disabled' : ''}
-                    oninput="updateName(${index}, this.value)"
-                >
-            </td>
-
-            <td>
-                <select 
-                    ${gameStarted ? 'disabled' : ''}
-                    onchange="updateRole(${index}, this.value)"
-                >
-                    ${roleOptions(player.role)}
-                </select>
-            </td>
-
-            <td class="col-drag">
-                <div 
-                    class="drag-handle"
-                    draggable="true"
-                    ondragstart="dragStart(event, ${index})"
-                    ondragover="dragOver(event)"
-                    ondrop="dropRow(event, ${index})"
-                    ondragend="dragEnd(event)"
-                >☰</div>
-            </td>
+            <button
+                class="drag-btn"
+                onpointerdown="startDrag(event, ${index})"
+            >☰</button>
         `;
 
-        row.ondragover = dragOver;
-        row.ondrop = function(event){
-            dropRow(event, index);
-        };
-
-        tbody.appendChild(row);
+        body.appendChild(rowWrap);
     });
+}
+
+function escapeHtml(text){
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
 }
 
 function updateName(index, value){
@@ -247,30 +264,48 @@ function startGame(){
     renderTable();
 }
 
-function dragStart(event, index){
+function startDrag(event, index){
+    event.preventDefault();
+
     draggedIndex = index;
-    event.target.closest('tr').classList.add('dragging');
+
+    const row = event.target.closest('.row-wrap');
+    row.classList.add('dragging');
+
+    event.target.setPointerCapture(event.pointerId);
+
+    event.target.onpointermove = moveDrag;
+    event.target.onpointerup = endDrag;
 }
 
-function dragOver(event){
-    event.preventDefault();
+function moveDrag(event){
+    const element = document.elementFromPoint(event.clientX, event.clientY);
+    const row = element?.closest('.row-wrap');
+
+    if(!row) return;
+
+    currentOverIndex = Number(row.dataset.index);
 }
 
-function dropRow(event, targetIndex){
-    event.preventDefault();
+function endDrag(event){
+    event.target.releasePointerCapture(event.pointerId);
 
-    if(draggedIndex === null || draggedIndex === targetIndex) return;
+    event.target.onpointermove = null;
+    event.target.onpointerup = null;
 
-    const movedPlayer = players.splice(draggedIndex, 1)[0];
-    players.splice(targetIndex, 0, movedPlayer);
+    if(
+        draggedIndex !== null &&
+        currentOverIndex !== null &&
+        draggedIndex !== currentOverIndex
+    ){
+        const movedPlayer = players.splice(draggedIndex, 1)[0];
+        players.splice(currentOverIndex, 0, movedPlayer);
+    }
 
     draggedIndex = null;
+    currentOverIndex = null;
+
     renderTable();
-}
-
-function dragEnd(event){
-    event.target.closest('tr')?.classList.remove('dragging');
-    draggedIndex = null;
 }
 
 renderTable();
