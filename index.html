@@ -725,7 +725,20 @@ function updateStartButton(){
 function updateName(index, value){
     if(players[index]){
         players[index].name = value;
-        renderScreen();
+
+        const roleSelect = document.querySelector(`[data-role-index="${index}"]`);
+
+        if(roleSelect && !gameStarted){
+            roleSelect.disabled = value.trim() === '';
+
+            if(value.trim() === ''){
+                players[index].role = ROLE_CIVILIAN;
+                roleSelect.value = ROLE_CIVILIAN;
+            }
+        }
+
+        updateStartButton();
+        saveState();
     }
 }
 
