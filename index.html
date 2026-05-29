@@ -538,13 +538,13 @@ function renderChoiceHistory(){
             !mafiaBlocked && !maniacBlocked
         ){
             const name = escapeHtml(players[mafiaTargetIndex].name);
-            history.push(`— Мафия и Маньяк <span style='color:#d60000'>убили</span> «${name}»`);
+            history.push(`— Мафия и Маньяк <span style='color:#d60000'>убили «${name}»</span>`);
         }
         else if(
             mafiaKilled && maniacKilled &&
             mafiaBlocked && maniacBlocked
         ){
-            history.push(`— Мафия и Маньяк никого <span style='color:#888'>не убили</span>`);
+            history.push(`— Мафия и Маньяк <span style='color:#888'>не убили</span>`);
         }
         else{
             if(mafiaKilled){
@@ -552,8 +552,8 @@ function renderChoiceHistory(){
 
                 history.push(
                     mafiaBlocked
-                    ? `— Мафия никого <span style='color:#888'>не убила</span>`
-                    : `— Мафия <span style='color:#d60000'>убила</span> «${name}»`
+                    ? `— Мафия <span style='color:#888'>не убила</span>`
+                    : `— Мафия <span style='color:#d60000'>убила «${name}»</span>`
                 );
             }
 
@@ -562,8 +562,8 @@ function renderChoiceHistory(){
 
                 history.push(
                     maniacBlocked
-                    ? `— Маньяк никого <span style='color:#888'>не убил</span>`
-                    : `— Маньяк <span style='color:#d60000'>убил</span> «${name}»`
+                    ? `— Маньяк <span style='color:#888'>не убил</span>`
+                    : `— Маньяк <span style='color:#d60000'>убил «${name}»</span>`
                 );
             }
         }
@@ -587,7 +587,7 @@ function renderChoiceHistory(){
             history.push(
                 doctorSavedSomeone
                 ? `— Доктор <span style='color:#2ecc71'>вылечил игрока</span>`
-                : `— Доктор <span style='color:#888'>никого не вылечил</span>`
+                : `— Доктор <span style='color:#888'>не вылечил</span>`
             );
         }
     } else {
