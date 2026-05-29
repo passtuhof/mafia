@@ -75,6 +75,23 @@ h1{
     justify-content:center;
 }
 
+.clear-name-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    margin-right:6px;
+    color:#bbb;
+    cursor:pointer;
+    font-size:12px;
+    user-select:none;
+}
+
+.clear-name-btn:hover{
+    color:white;
+}
+
 .drag-handle{
     height:48px;
     width:28px;
@@ -485,6 +502,7 @@ function renderTable(){
         row.innerHTML = `
             <div class="cell number-cell" data-click-target="${index}">${player.alive === false ? '☠️' : index + 1}</div>
             <div class="cell" data-click-target="${index}">
+                <span class="clear-name-btn" data-clear-index="${index}">✕</span>
                 <input
                     type="text"
                     value="${escapeHtml(player.name)}"
@@ -1092,7 +1110,24 @@ function bindEvents(){
     document.getElementById('finishYesBtn').addEventListener('click', finishGame);
     document.getElementById('finishNoBtn').addEventListener('click', closeFinishModal);
 
-    document.getElementById('playersTable').addEventListener('input', event => {
+    
+document.getElementById('playersTable').addEventListener('click', event => {
+    const clearBtn = event.target.closest('[data-clear-index]');
+
+    if(clearBtn && !gameStarted){
+        const index = Number(clearBtn.dataset.clearIndex);
+
+        if(players[index]){
+            players[index].name = '';
+            renderScreen();
+        }
+
+        event.stopPropagation();
+        return;
+    }
+});
+
+document.getElementById('playersTable').addEventListener('input', event => {
         const index = event.target.dataset.nameIndex;
 
         if(index !== undefined){
