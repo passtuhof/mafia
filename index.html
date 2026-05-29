@@ -115,7 +115,7 @@ select:disabled{
     display:flex;
     gap:10px;
     margin-top:15px;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
 }
 
 .main-btn{
@@ -126,7 +126,8 @@ select:disabled{
     cursor:pointer;
     background:#d60000;
     color:white;
-    padding:0 18px;
+    padding:0 14px;
+    white-space:nowrap;
 }
 
 .main-btn:disabled{
@@ -530,6 +531,7 @@ function renderScreen(){
         choiceBtn.onclick = startNight;
 
         ensureVoteButton(true);
+        ensureVotingNightButton(false);
 
         const hasHistory =
             mafiaTargetIndex !== null ||
@@ -547,8 +549,9 @@ function renderScreen(){
         gameButtons.style.display = 'flex';
 
         ensureVoteButton(false);
+        ensureVotingNightButton(true);
 
-        choiceBtn.textContent = 'Выбор';
+        choiceBtn.textContent = 'Казнить';
         choiceBtn.disabled = votingTargetIndex === null;
         choiceBtn.onclick = confirmVotingChoice;
 
@@ -563,6 +566,7 @@ function renderScreen(){
         wakeBlock.style.display = 'block';
 
         ensureVoteButton(false);
+        ensureVotingNightButton(false);
 
         choiceBtn.textContent = 'Выбор';
         choiceBtn.onclick = confirmNightChoice;
@@ -817,6 +821,28 @@ function ensureVoteButton(shouldShow){
         voteBtn.style.display = 'none';
     }
 }
+
+function ensureVotingNightButton(shouldShow){
+    let votingNightBtn = document.getElementById('votingNightBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!votingNightBtn){
+            votingNightBtn = document.createElement('button');
+            votingNightBtn.className = 'main-btn choice-btn';
+            votingNightBtn.id = 'votingNightBtn';
+            votingNightBtn.textContent = 'Ночь';
+            votingNightBtn.addEventListener('click', startNight);
+            choiceBtn.insertAdjacentElement('afterend', votingNightBtn);
+        }
+
+        votingNightBtn.style.display = '';
+        votingNightBtn.disabled = false;
+    }else if(votingNightBtn){
+        votingNightBtn.style.display = 'none';
+    }
+}
+
 
 function startVoting(){
     gameStage = 'voting';
