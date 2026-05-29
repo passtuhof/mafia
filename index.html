@@ -764,16 +764,56 @@ function startDay(){
     renderScreen();
 }
 
+
+function goToNextNightRole(afterRole){
+    if(afterRole === null){
+        if(hasAliveRole(ROLE_MAFIA)){
+            startRoleWake(ROLE_MAFIA);
+            return;
+        }
+
+        afterRole = ROLE_MAFIA;
+    }
+
+    if(afterRole === ROLE_MAFIA){
+        if(hasAliveRole(ROLE_MANIAC)){
+            startRoleWake(ROLE_MANIAC);
+            return;
+        }
+
+        afterRole = ROLE_MANIAC;
+    }
+
+    if(afterRole === ROLE_MANIAC){
+        if(hasAliveRole(ROLE_COMMISSIONER)){
+            startRoleWake(ROLE_COMMISSIONER);
+            return;
+        }
+
+        afterRole = ROLE_COMMISSIONER;
+    }
+
+    if(afterRole === ROLE_COMMISSIONER){
+        if(hasAliveRole(ROLE_DOCTOR)){
+            startRoleWake(ROLE_DOCTOR);
+            return;
+        }
+    }
+
+    startMorning();
+}
+
 function startNight(){
     gameStage = 'night';
-    activeWakeRole = ROLE_MAFIA;
     selectedTargetIndex = null;
+    activeWakeRole = null;
+
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
 
-    renderScreen();
+    goToNextNightRole(null);
 }
 
 function startManiacWake(){
@@ -855,43 +895,19 @@ function confirmNightChoice(){
 
     if(activeWakeRole === ROLE_MAFIA){
         mafiaTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_MANIAC)){
-            startManiacWake();
-        }else if(hasRole(ROLE_COMMISSIONER)){
-            startCommissionerWake();
-        }else if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
+        goToNextNightRole(ROLE_MAFIA);
         return;
     }
 
     if(activeWakeRole === ROLE_MANIAC){
         maniacTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_COMMISSIONER)){
-            startCommissionerWake();
-        }else if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
+        goToNextNightRole(ROLE_MANIAC);
         return;
     }
 
     if(activeWakeRole === ROLE_COMMISSIONER){
         commissionerTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
+        goToNextNightRole(ROLE_COMMISSIONER);
         return;
     }
 
