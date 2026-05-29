@@ -193,7 +193,7 @@ select:disabled{
 
 <h1>Мафия</h1>
 
-<div class="phase-title" id="phaseTitle">Ночь для знакомства</div>
+<div class="phase-title" id="phaseTitle">Знакомство</div>
 
 <div class="players-grid" id="playersGrid">
     <div class="player-row">
@@ -341,13 +341,19 @@ function removeRow(){
 }
 
 function startDay(){
+
+    players = players.filter(player => player.name.trim() !== '');
+
     gameStarted = true;
 
     document.getElementById('phaseTitle').textContent = 'Сейчас день';
+
     document.getElementById('startButtons').style.display = 'none';
+
     document.getElementById('gameButtons').style.display = 'flex';
 
     renderTable();
+
 }
 
 function openFinishModal(){
@@ -358,15 +364,30 @@ function closeFinishModal(){
     document.getElementById('finishModal').style.display = 'none';
 }
 
+
+
 function finishGame(){
+
     gameStarted = false;
 
-    document.getElementById('phaseTitle').textContent = 'Ночь для знакомства';
+    players = players.map(player => ({
+
+        name: player.name,
+
+        role: '👤 Мирный'
+
+    }));
+
+    document.getElementById('phaseTitle').textContent = 'Знакомство';
+
     document.getElementById('startButtons').style.display = 'flex';
+
     document.getElementById('gameButtons').style.display = 'none';
 
     closeFinishModal();
+
     renderTable();
+
 }
 
 function startDrag(event, index){
