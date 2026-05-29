@@ -902,6 +902,11 @@ function confirmNightChoice(){
     }
 }
 
+
+function hasAliveRole(role){
+    return players.some(player => player.role === role && player.alive !== false);
+}
+
 function hasRole(role){
     return players.some(player => player.role === role);
 }
