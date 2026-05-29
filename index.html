@@ -196,6 +196,17 @@ select option:disabled{
     color:white !important;
 }
 
+.dead-player .cell:not(.drag-cell){
+    background:#555 !important;
+    color:white !important;
+}
+
+.dead-player input,
+.dead-player select{
+    background:#555 !important;
+    color:white !important;
+}
+
 .modal{
     display:none;
     position:fixed;
@@ -432,6 +443,11 @@ function renderTable(){
 
         const isActiveRole = gameStage === 'night' && activeWakeRole && player.role === activeWakeRole;
         const isTarget = gameStage === 'night' && selectedTargetIndex === index;
+        const isDead = player.alive === false;
+
+        if(isDead){
+            row.classList.add('dead-player');
+        }
 
         if(isActiveRole){
             row.classList.add('role-highlight');
@@ -442,7 +458,7 @@ function renderTable(){
         }
 
         row.innerHTML = `
-            <div class="cell number-cell" data-click-target="${index}">${index + 1}</div>
+            <div class="cell number-cell" data-click-target="${index}">${player.alive === false ? "☠️" : index + 1}</div>
             <div class="cell" data-click-target="${index}">
                 <input
                     type="text"
@@ -744,7 +760,28 @@ function startDoctorWake(){
     renderScreen();
 }
 
+
+function applyNightResults(){
+    const killedIndexes = [];
+
+    if(mafiaTargetIndex !== null && mafiaTargetIndex !== doctorTargetIndex){
+        killedIndexes.push(mafiaTargetIndex);
+    }
+
+    if(maniacTargetIndex !== null && maniacTargetIndex !== doctorTargetIndex){
+        killedIndexes.push(maniacTargetIndex);
+    }
+
+    [...new Set(killedIndexes)].forEach(index => {
+        if(players[index]){
+            players[index].alive = false;
+        }
+    });
+}
+
 function startMorning(){
+    applyNightResults();
+
     gameStage = 'day';
     activeWakeRole = null;
     selectedTargetIndex = null;
