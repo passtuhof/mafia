@@ -423,20 +423,17 @@ function startDay(){
 }
 
 function startNight(){
+
     gameStage = 'night';
-    activeWakeRole = null;
-    selectedTargetIndex = null;
 
     document.getElementById('phaseTitle').textContent = 'Сейчас ночь';
+
     document.getElementById('nightMorningBtn').textContent = 'Утро';
     document.getElementById('nightMorningBtn').onclick = startMorning;
 
-    document.getElementById('wakeTitle').textContent = 'Кто просыпается?';
-
-    renderWakeButtons();
     document.getElementById('wakeBlock').style.display = 'block';
 
-    renderTable();
+    startMafiaWake();
 }
 
 function startMorning(){
@@ -452,37 +449,7 @@ function startMorning(){
     renderTable();
 }
 
-function renderWakeButtons(){
-    const wakeButtons = document.getElementById('wakeButtons');
-    wakeButtons.innerHTML = '';
 
-    const rolesOrder = [
-        '🔫 Мафия',
-        '⭐ Комиссар',
-        '🚑 Доктор',
-        '🔪 Маньяк'
-    ];
-
-    const rolesInGame = [...new Set(
-        players
-            .map(player => player.role)
-            .filter(role => role !== '👤 Мирный')
-    )];
-
-    rolesOrder.forEach(role => {
-        if(rolesInGame.includes(role)){
-            const button = document.createElement('button');
-            button.className = 'wake-role-btn';
-            button.textContent = role.replace(/^.+?\s/, '');
-
-            if(role === '🔫 Мафия'){
-                button.onclick = startMafiaWake;
-            }
-
-            wakeButtons.appendChild(button);
-        }
-    });
-}
 
 function startMafiaWake(){
     activeWakeRole = '🔫 Мафия';
