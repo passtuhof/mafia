@@ -196,6 +196,17 @@ select option:disabled{
     color:white !important;
 }
 
+.green-target-highlight .cell:not(.drag-cell){
+    background:#2ecc71 !important;
+    color:#111 !important;
+}
+
+.green-target-highlight input,
+.green-target-highlight select{
+    background:#2ecc71 !important;
+    color:#111 !important;
+}
+
 .dead-player .cell:not(.drag-cell){
     background:#555 !important;
     color:white !important;
@@ -472,7 +483,11 @@ function renderTable(){
         }
 
         if(isTarget){
-            row.classList.add('target-highlight');
+            if(activeWakeRole === ROLE_COMMISSIONER || activeWakeRole === ROLE_DOCTOR){
+                row.classList.add('green-target-highlight');
+            }else{
+                row.classList.add('target-highlight');
+            }
         }
 
         row.innerHTML = `
@@ -817,7 +832,7 @@ function choosePlayer(index){
         return;
     }
 
-    if(player.role === activeWakeRole){
+    if(player.role === activeWakeRole && activeWakeRole !== ROLE_DOCTOR){
         return;
     }
 
