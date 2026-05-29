@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мафия</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    background:#111;
+    color:white;
+    font-family:Arial,sans-serif;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+    color:#d60000;
+}
+
+h2{
+    margin-bottom:15px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:15px;
+}
+
+th, td{
+    border:1px solid #444;
+    padding:8px;
+}
+
+th{
+    background:#222;
+}
+
+.col-number{
+    width:60px;
+    text-align:center;
+}
+
+.col-player{
+    width:auto;
+}
+
+.col-role{
+    width:180px;
+}
+
+input{
+    width:100%;
+    background:#1d1d1d;
+    color:white;
+    border:none;
+    padding:8px;
+}
+
+select{
+    width:100%;
+    background:#1d1d1d;
+    color:white;
+    border:none;
+    padding:8px;
+}
+
+.buttons{
+    display:flex;
+    gap:10px;
+}
+
+button{
+    width:50px;
+    height:50px;
+    font-size:28px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#d60000;
+    color:white;
+}
+
+button:hover{
+    opacity:0.9;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Мафия</h1>
+<h2>Игроки</h2>
+
+<table id="playersTable">
+    <thead>
+        <tr>
+            <th class="col-number">№</th>
+            <th class="col-player">Игрок</th>
+            <th class="col-role">Роль</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<div class="buttons">
+    <button onclick="addRow()">+</button>
+    <button onclick="removeRow()">−</button>
+</div>
+
+<script>
+
+let rowCount = 10;
+
+function roleOptions(){
+    return `
+        <option>👤 Мирный</option>
+        <option>🔫 Мафия</option>
+        <option>⭐ Комиссар</option>
+        <option>✚ Доктор</option>
+        <option>🔪 Маньяк</option>
+    `;
+}
+
+function renderTable(){
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    for(let i = 1; i <= rowCount; i++){
+
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td class="col-number">${i}</td>
+            <td>
+                <input type="text" placeholder="">
+            </td>
+            <td>
+                <select>
+                    ${roleOptions()}
+                </select>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    }
+}
+
+function addRow(){
+    rowCount++;
+    renderTable();
+}
+
+function removeRow(){
+
+    if(rowCount <= 1){
+        return;
+    }
+
+    rowCount--;
+    renderTable();
+}
+
+renderTable();
+
+</script>
+
+</body>
+</html>
