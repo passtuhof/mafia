@@ -37,10 +37,14 @@ h1{
 
 .player-row{
     display:grid;
-    grid-template-columns: 1fr 34px;
+    grid-template-columns:minmax(0, 1fr) 34px;
     gap:6px;
     align-items:stretch;
     margin-bottom:-1px;
+}
+
+.player-row > table{
+    min-width:0;
 }
 
 table{
@@ -93,6 +97,10 @@ select:disabled{
     touch-action:none;
     cursor:grab;
     height:48px;
+}
+
+.dragging-row{
+    opacity:0.4;
 }
 
 .buttons{
@@ -155,7 +163,13 @@ select:disabled{
     font-weight:bold;
 }
 
-.mafia-highlight{
+.mafia-highlight td{
+    background:#e5c100 !important;
+    color:#111 !important;
+}
+
+.mafia-highlight input,
+.mafia-highlight select{
     background:#e5c100 !important;
     color:#111 !important;
 }
@@ -322,24 +336,27 @@ function renderTable(){
         wrapper.innerHTML = `
             <table>
                 <tbody>
-                    <tr class="${isTarget ? 'target-highlight' : ''}" onclick="choosePlayer(${index})">
+                    <tr 
+                        class="${isTarget ? 'target-highlight' : ''} ${isMafiaActive ? 'mafia-highlight' : ''}" 
+                        onclick="choosePlayer(${index})"
+                    >
                         <td class="col-number">${index + 1}</td>
 
                         <td>
                             <input
-                                class="${isMafiaActive ? 'mafia-highlight' : ''}"
                                 type="text"
                                 value="${escapeHtml(player.name)}"
                                 ${gameStarted ? 'disabled' : ''}
                                 oninput="updateName(${index}, this.value)"
+                                onclick="choosePlayer(${index})"
                             >
                         </td>
 
                         <td>
                             <select
-                                class="${isMafiaActive ? 'mafia-highlight' : ''}"
                                 ${gameStarted ? 'disabled' : ''}
                                 onchange="updateRole(${index}, this.value)"
+                                onclick="choosePlayer(${index})"
                             >
                                 ${roleOptions(player.role)}
                             </select>
@@ -457,7 +474,7 @@ function renderWakeButtons(){
             const button = document.createElement('button');
             button.className = 'wake-role-btn';
             button.textContent = role.replace(/^.+?\s/, '');
-            
+
             if(role === '🔫 Мафия'){
                 button.onclick = startMafiaWake;
             }
@@ -473,8 +490,7 @@ function startMafiaWake(){
 
     document.getElementById('wakeTitle').textContent = 'Просыпается Мафия…';
 
-    const wakeButtons = document.getElementById('wakeButtons');
-    wakeButtons.innerHTML = `
+    document.getElementById('wakeButtons').innerHTML = `
         <div class="action-text">
             Мафия делает выбор (нажмите на игрока)
         </div>
