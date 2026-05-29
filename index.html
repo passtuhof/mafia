@@ -25,14 +25,11 @@ h1{
     color:#d60000;
 }
 
-.table-wrap{
-    width:100%;
-}
-
-.row-wrap{
-    display:flex;
-    align-items:stretch;
-    margin-bottom:-1px;
+.table-area{
+    display:grid;
+    grid-template-columns: 1fr 34px;
+    gap:6px;
+    align-items:start;
 }
 
 table{
@@ -52,7 +49,7 @@ th{
 }
 
 .col-number{
-    width:32px;
+    width:30px;
     text-align:center;
 }
 
@@ -81,20 +78,27 @@ select:disabled{
     background:#1d1d1d;
 }
 
-.drag-btn{
-    width:34px;
-    margin-left:6px;
-    border:1px solid #444;
-    background:#1d1d1d;
-    color:#aaa;
-    font-size:20px;
-    cursor:grab;
-    touch-action:none;
-    user-select:none;
-    border-radius:6px;
+.drag-column{
+    padding-top:48px;
 }
 
-.dragging{
+.drag-handle{
+    height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#aaa;
+    font-size:22px;
+    user-select:none;
+    touch-action:none;
+    cursor:grab;
+}
+
+.drag-handle:active{
+    cursor:grabbing;
+}
+
+.dragging-row{
     opacity:0.4;
 }
 
@@ -130,23 +134,19 @@ select:disabled{
 
 <h1>Мафия</h1>
 
-<div class="table-wrap">
+<div class="table-area">
+    <table>
+        <thead>
+            <tr>
+                <th class="col-number">№</th>
+                <th class="col-player">Игрок</th>
+                <th class="col-role">Роль</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 
-    <div class="row-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-number">№</th>
-                    <th class="col-player">Игрок</th>
-                    <th class="col-role">Роль</th>
-                </tr>
-            </thead>
-        </table>
-        <div style="width:40px;margin-left:6px;"></div>
-    </div>
-
-    <div id="tableBody"></div>
-
+    <div class="drag-column" id="dragColumn"></div>
 </div>
 
 <div class="buttons">
@@ -184,46 +184,49 @@ function roleOptions(selectedRole){
 }
 
 function renderTable(){
-    const body = document.getElementById('tableBody');
-    body.innerHTML = '';
+    const tbody = document.getElementById('tableBody');
+    const dragColumn = document.getElementById('dragColumn');
+
+    tbody.innerHTML = '';
+    dragColumn.innerHTML = '';
 
     players.forEach((player, index) => {
-        const rowWrap = document.createElement('div');
-        rowWrap.className = 'row-wrap';
-        rowWrap.dataset.index = index;
+        const row = document.createElement('tr');
+        row.dataset.index = index;
 
-        rowWrap.innerHTML = `
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="col-number">${index + 1}</td>
-                        <td class="col-player">
-                            <input
-                                type="text"
-                                value="${escapeHtml(player.name)}"
-                                ${gameStarted ? 'disabled' : ''}
-                                oninput="updateName(${index}, this.value)"
-                            >
-                        </td>
-                        <td class="col-role">
-                            <select 
-                                ${gameStarted ? 'disabled' : ''}
-                                onchange="updateRole(${index}, this.value)"
-                            >
-                                ${roleOptions(player.role)}
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        row.innerHTML = `
+            <td class="col-number">${index + 1}</td>
 
-            <button
-                class="drag-btn"
-                onpointerdown="startDrag(event, ${index})"
-            >☰</button>
+            <td class="col-player">
+                <input
+                    type="text"
+                    value="${escapeHtml(player.name)}"
+                    ${gameStarted ? 'disabled' : ''}
+                    oninput="updateName(${index}, this.value)"
+                >
+            </td>
+
+            <td class="col-role">
+                <select
+                    ${gameStarted ? 'disabled' : ''}
+                    onchange="updateRole(${index}, this.value)"
+                >
+                    ${roleOptions(player.role)}
+                </select>
+            </td>
         `;
 
-        body.appendChild(rowWrap);
+        tbody.appendChild(row);
+
+        const handle = document.createElement('div');
+        handle.className = 'drag-handle';
+        handle.textContent = '☰';
+        handle.dataset.index = index;
+        handle.onpointerdown = function(event){
+            startDrag(event, index);
+        };
+
+        dragColumn.appendChild(handle);
     });
 }
 
@@ -269,8 +272,8 @@ function startDrag(event, index){
 
     draggedIndex = index;
 
-    const row = event.target.closest('.row-wrap');
-    row.classList.add('dragging');
+    const rows = document.querySelectorAll('#tableBody tr');
+    rows[index]?.classList.add('dragging-row');
 
     event.target.setPointerCapture(event.pointerId);
 
@@ -279,12 +282,21 @@ function startDrag(event, index){
 }
 
 function moveDrag(event){
-    const element = document.elementFromPoint(event.clientX, event.clientY);
-    const row = element?.closest('.row-wrap');
+    const rows = Array.from(document.querySelectorAll('#tableBody tr'));
 
-    if(!row) return;
+    let foundIndex = null;
 
-    currentOverIndex = Number(row.dataset.index);
+    rows.forEach((row, index) => {
+        const rect = row.getBoundingClientRect();
+
+        if(event.clientY >= rect.top && event.clientY <= rect.bottom){
+            foundIndex = index;
+        }
+    });
+
+    if(foundIndex !== null){
+        currentOverIndex = foundIndex;
+    }
 }
 
 function endDrag(event){
