@@ -525,59 +525,87 @@ function renderChoiceHistory(){
     const history = [];
     const isDaySummary = gameStarted && gameStage === 'day';
 
-    if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
-        const name = escapeHtml(players[mafiaTargetIndex].name);
-        const mafiaKillBlocked = isDaySummary && mafiaTargetIndex === doctorTargetIndex;
+    if(isDaySummary){
+        const mafiaKilled = mafiaTargetIndex !== null;
+        const maniacKilled = maniacTargetIndex !== null;
 
-        history.push(isDaySummary
-            ? (mafiaKillBlocked
-                ? `— Мафия никого <span style='color:#888'>не убила</span>`
-                : `— Мафия <span style='color:#d60000'>убила</span> «${name}»`
-              )
-            : `— Мафия выбрала «${name}»`
-        );
-    }
+        const mafiaBlocked = mafiaKilled && mafiaTargetIndex === doctorTargetIndex;
+        const maniacBlocked = maniacKilled && maniacTargetIndex === doctorTargetIndex;
 
-    if(maniacTargetIndex !== null && players[maniacTargetIndex]){
-        const name = escapeHtml(players[maniacTargetIndex].name);
-        const maniacKillBlocked = isDaySummary && maniacTargetIndex === doctorTargetIndex;
+        if(
+            mafiaKilled && maniacKilled &&
+            mafiaTargetIndex === maniacTargetIndex &&
+            !mafiaBlocked && !maniacBlocked
+        ){
+            const name = escapeHtml(players[mafiaTargetIndex].name);
+            history.push(`— Мафия и Маньяк <span style='color:#d60000'>убили</span> «${name}»`);
+        }
+        else if(
+            mafiaKilled && maniacKilled &&
+            mafiaBlocked && maniacBlocked
+        ){
+            history.push(`— Мафия и Маньяк <span style='color:#888'>не убили</span>`);
+        }
+        else{
+            if(mafiaKilled){
+                const name = escapeHtml(players[mafiaTargetIndex].name);
 
-        history.push(isDaySummary
-            ? (maniacKillBlocked
-                ? `— Маньяк никого <span style='color:#888'>не убил</span>`
-                : `— Маньяк <span style='color:#d60000'>убил</span> «${name}»`
-              )
-            : `— Маньяк выбрал «${name}»`
-        );
-    }
+                history.push(
+                    mafiaBlocked
+                    ? `— Мафия никого <span style='color:#888'>не убила</span>`
+                    : `— Мафия <span style='color:#d60000'>убила</span> «${name}»`
+                );
+            }
 
-    if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
-        const name = escapeHtml(players[commissionerTargetIndex].name);
-        const checkedRole = players[commissionerTargetIndex].role;
-        const isActiveRole = checkedRole === ROLE_MAFIA || checkedRole === ROLE_MANIAC;
+            if(maniacKilled){
+                const name = escapeHtml(players[maniacTargetIndex].name);
 
-        history.push(isDaySummary
-            ? (isActiveRole
+                history.push(
+                    maniacBlocked
+                    ? `— Маньяк никого <span style='color:#888'>не убил</span>`
+                    : `— Маньяк <span style='color:#d60000'>убил</span> «${name}»`
+                );
+            }
+        }
+
+        if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
+            const checkedRole = players[commissionerTargetIndex].role;
+            const isActiveRole = checkedRole === ROLE_MAFIA || checkedRole === ROLE_MANIAC;
+
+            history.push(
+                isActiveRole
                 ? `— Комиссар проверил <span style='color:#2ecc71'>активную роль</span>`
                 : `— Комиссар проверил <span style='color:#888'>неактивную роль</span>`
-              )
-            : `— Комиссар выбрал «${name}»`
-        );
-    }
+            );
+        }
 
-    if(doctorTargetIndex !== null && players[doctorTargetIndex]){
-        const name = escapeHtml(players[doctorTargetIndex].name);
-        const doctorSavedSomeone =
-            doctorTargetIndex === mafiaTargetIndex ||
-            doctorTargetIndex === maniacTargetIndex;
+        if(doctorTargetIndex !== null && players[doctorTargetIndex]){
+            const doctorSavedSomeone =
+                doctorTargetIndex === mafiaTargetIndex ||
+                doctorTargetIndex === maniacTargetIndex;
 
-        history.push(isDaySummary
-            ? (doctorSavedSomeone
+            history.push(
+                doctorSavedSomeone
                 ? `— Доктор <span style='color:#2ecc71'>вылечил игрока</span>`
                 : `— Доктор <span style='color:#888'>никого не вылечил</span>`
-              )
-            : `— Доктор выбрал «${name}»`
-        );
+            );
+        }
+    } else {
+        if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
+            history.push(`— Мафия выбрала «${escapeHtml(players[mafiaTargetIndex].name)}»`);
+        }
+
+        if(maniacTargetIndex !== null && players[maniacTargetIndex]){
+            history.push(`— Маньяк выбрал «${escapeHtml(players[maniacTargetIndex].name)}»`);
+        }
+
+        if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
+            history.push(`— Комиссар выбрал «${escapeHtml(players[commissionerTargetIndex].name)}»`);
+        }
+
+        if(doctorTargetIndex !== null && players[doctorTargetIndex]){
+            history.push(`— Доктор выбрал «${escapeHtml(players[doctorTargetIndex].name)}»`);
+        }
     }
 
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
