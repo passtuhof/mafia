@@ -527,16 +527,26 @@ function renderChoiceHistory(){
 
     if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
         const name = escapeHtml(players[mafiaTargetIndex].name);
+        const mafiaKillBlocked = isDaySummary && mafiaTargetIndex === doctorTargetIndex;
+
         history.push(isDaySummary
-            ? `— Мафия убила «${name}»`
+            ? (mafiaKillBlocked
+                ? `— Мафия <span style='color:#888'>никого</span> не убила`
+                : `— Мафия убила «<span style='color:#d60000'>${name}</span>»`
+              )
             : `— Мафия выбрала «${name}»`
         );
     }
 
     if(maniacTargetIndex !== null && players[maniacTargetIndex]){
         const name = escapeHtml(players[maniacTargetIndex].name);
+        const maniacKillBlocked = isDaySummary && maniacTargetIndex === doctorTargetIndex;
+
         history.push(isDaySummary
-            ? `— Маньяк убил «${name}»`
+            ? (maniacKillBlocked
+                ? `— Маньяк <span style='color:#888'>никого</span> не убил`
+                : `— Маньяк убил «<span style='color:#d60000'>${name}</span>»`
+              )
             : `— Маньяк выбрал «${name}»`
         );
     }
