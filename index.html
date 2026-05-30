@@ -522,6 +522,7 @@ function renderScreen(){
         startButtons.style.display = 'flex';
         gameButtons.style.display = 'none';
         wakeBlock.style.display = 'none';
+        ensureNightSkipButton(false);
     }else if(gameStage === 'day'){
         phaseTitle.textContent = 'Сейчас день';
         startButtons.style.display = 'none';
@@ -534,7 +535,10 @@ function renderScreen(){
         ensureVoteButton(true);
         ensureVotingNightButton(false);
 
+        ensureNightSkipButton(false);
+
         const hasHistory =
+            nightSkipped ||
             mafiaTargetIndex !== null ||
             maniacTargetIndex !== null ||
             commissionerTargetIndex !== null ||
@@ -542,13 +546,14 @@ function renderScreen(){
 
         wakeBlock.style.display = hasHistory ? 'block' : 'none';
         document.getElementById('wakeTitle').textContent = '';
-        document.getElementById('actionText').textContent = '';
+        document.getElementById('actionText').textContent = nightSkipped ? 'Ночь пропущена…' : '';
         renderChoiceHistory();
     }else if(gameStage === 'voting'){
         phaseTitle.textContent = 'Сейчас день';
         startButtons.style.display = 'none';
         gameButtons.style.display = 'flex';
 
+        ensureNightSkipButton(false);
         ensureVoteButton(false);
         ensureVotingNightButton(true);
 
@@ -568,6 +573,8 @@ function renderScreen(){
 
         ensureVoteButton(false);
         ensureVotingNightButton(false);
+
+        ensureNightSkipButton(mafiaTargetIndex === null && maniacTargetIndex === null && commissionerTargetIndex === null && doctorTargetIndex === null);
 
         choiceBtn.textContent = 'Выбор';
         choiceBtn.onclick = confirmNightChoice;
@@ -879,8 +886,40 @@ function confirmVotingChoice(){
 }
 
 
+
+function ensureNightSkipButton(shouldShow){
+    let daySkipBtn = document.getElementById('daySkipBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!daySkipBtn){
+            daySkipBtn = document.createElement('button');
+            daySkipBtn.className = 'main-btn choice-btn';
+            daySkipBtn.id = 'daySkipBtn';
+            daySkipBtn.textContent = 'День';
+            daySkipBtn.addEventListener('click', skipNightToDay);
+            choiceBtn.insertAdjacentElement('afterend', daySkipBtn);
+        }
+
+        daySkipBtn.style.display = '';
+        daySkipBtn.disabled = false;
+    }else if(daySkipBtn){
+        daySkipBtn.style.display = 'none';
+    }
+}
+
+function skipNightToDay(){
+    nightSkipped = true;
+    activeWakeRole = null;
+    selectedTargetIndex = null;
+    gameStage = 'day';
+    renderScreen();
+}
+
+
 function startNight(){
     gameStage = 'night';
+    nightSkipped = false;
     selectedTargetIndex = null;
     votingTargetIndex = null;
     activeWakeRole = null;
@@ -955,6 +994,7 @@ function applyNightResults(){
 
 function startMorning(){
     applyNightResults();
+    nightSkipped = false;
 
     gameStage = 'day';
     activeWakeRole = null;
