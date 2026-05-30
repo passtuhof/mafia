@@ -546,7 +546,8 @@ function renderScreen(){
 
         wakeBlock.style.display = hasHistory ? 'block' : 'none';
         document.getElementById('wakeTitle').textContent = '';
-        document.getElementById('actionText').textContent = nightSkipped ? 'Ночь пропущена…' : '';
+        document.getElementById('wakeTitle').textContent = nightSkipped ? 'Ночь пропущена…' : '';
+        document.getElementById('actionText').textContent = '';
         renderChoiceHistory();
     }else if(gameStage === 'voting'){
         phaseTitle.textContent = 'Сейчас день';
