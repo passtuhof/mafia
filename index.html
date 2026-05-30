@@ -21,30 +21,8 @@ body{
 
 h1{
     text-align:center;
-    color:#d60000;
-}
-
-.top-bar{
-    display:grid;
-    grid-template-columns:40px 1fr 40px;
-    align-items:center;
     margin-bottom:20px;
-}
-
-.refresh-btn{
-    width:36px;
-    height:36px;
-    border:none;
-    border-radius:10px;
-    background:#222;
-    color:white;
-    font-size:22px;
-    cursor:pointer;
-}
-
-.top-spacer{
-    width:36px;
-    height:36px;
+    color:#d60000;
 }
 
 .phase-title{
@@ -297,11 +275,7 @@ select option:disabled{
 
 <body>
 
-<div class="top-bar">
-    <div class="top-spacer"></div>
-    <h1>Мафия</h1>
-    <button id="refreshBtn" class="refresh-btn" type="button">↻</button>
-</div>
+<h1>Мафия</h1>
 
 <div class="phase-title" id="phaseTitle">Знакомство</div>
 
@@ -549,72 +523,94 @@ function renderScreen(){
     const wakeTitle = document.getElementById('wakeTitle');
     const actionText = document.getElementById('actionText');
 
-    if(!gameStarted){
-        phaseTitle.textContent = 'Знакомство';
-        startButtons.style.display = 'flex';
-        gameButtons.style.display = 'none';
-        wakeBlock.style.display = 'none';
-        ensureNightSkipButton(false);
-    }else if(gameStage === 'day'){
-        phaseTitle.textContent = 'Сейчас день';
-        startButtons.style.display = 'none';
-        gameButtons.style.display = 'flex';
+    try{
+        if(!gameStarted){
+            phaseTitle.textContent = 'Знакомство';
+            startButtons.style.display = 'flex';
+            gameButtons.style.display = 'none';
+            wakeBlock.style.display = 'none';
 
-        choiceBtn.textContent = 'Ночь';
-        choiceBtn.disabled = false;
-        choiceBtn.onclick = startNight;
-
-        ensureNightSkipButton(false);
-
-        const hasHistory =
-            nightSkipped ||
-            mafiaTargetIndex !== null ||
-            maniacTargetIndex !== null ||
-            commissionerTargetIndex !== null ||
-            doctorTargetIndex !== null;
-
-        wakeBlock.style.display = hasHistory ? 'block' : 'none';
-
-        if(wakeTitle){
-            wakeTitle.textContent = nightSkipped ? 'Ночь пропущена…' : '';
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
         }
+        else if(gameStage === 'day'){
+            phaseTitle.textContent = 'Сейчас день';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
 
-        if(actionText){
-            actionText.textContent = '';
+            choiceBtn.textContent = 'Ночь';
+            choiceBtn.disabled = false;
+            choiceBtn.onclick = startNight;
+
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(true);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
+
+            const hasHistory =
+                nightSkipped ||
+                mafiaTargetIndex !== null ||
+                maniacTargetIndex !== null ||
+                commissionerTargetIndex !== null ||
+                doctorTargetIndex !== null;
+
+            wakeBlock.style.display = hasHistory ? 'block' : 'none';
+
+            if(wakeTitle){
+                wakeTitle.textContent = nightSkipped ? 'Ночь пропущена…' : '';
+            }
+
+            if(actionText){
+                actionText.textContent = '';
+            }
+
+            safeRenderChoiceHistory();
         }
+        else if(gameStage === 'voting'){
+            phaseTitle.textContent = 'Сейчас день';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
 
-        safeRenderChoiceHistory();
-    }else if(gameStage === 'voting'){
-        phaseTitle.textContent = 'Сейчас день';
-        startButtons.style.display = 'none';
-        gameButtons.style.display = 'flex';
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(true);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
 
-        ensureNightSkipButton(false);
-        ensureVoteButton(false);
-        ensureVotingNightButton(true);
+            choiceBtn.textContent = 'Казнить';
+            choiceBtn.disabled = votingTargetIndex === null;
+            choiceBtn.onclick = confirmVotingChoice;
 
-        choiceBtn.textContent = 'Казнить';
-        choiceBtn.disabled = votingTargetIndex === null;
-        choiceBtn.onclick = confirmVotingChoice;
+            wakeBlock.style.display = 'block';
 
-        wakeBlock.style.display = 'block';
-        wakeTitle.textContent = 'Голосование…';
-        actionText.textContent = 'Выбери кого казнить (нажмите на игрока)';
-        document.getElementById('choiceHistory').innerHTML = '';
-    }else if(gameStage === 'night'){
-        phaseTitle.textContent = 'Сейчас ночь';
-        startButtons.style.display = 'none';
-        gameButtons.style.display = 'flex';
-        wakeBlock.style.display = 'block';
+            if(wakeTitle) wakeTitle.textContent = 'Голосование…';
+            if(actionText) actionText.textContent = 'Выбери кого казнить (нажмите на игрока)';
 
-        ensureVoteButton(false);
-        ensureVotingNightButton(false);
-        ensureNightSkipButton(mafiaTargetIndex === null && maniacTargetIndex === null && commissionerTargetIndex === null && doctorTargetIndex === null);
+            const historyEl = document.getElementById('choiceHistory');
+            if(historyEl) historyEl.innerHTML = '';
+        }
+        else if(gameStage === 'night'){
+            phaseTitle.textContent = 'Сейчас ночь';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
+            wakeBlock.style.display = 'block';
 
-        choiceBtn.textContent = 'Выбор';
-        choiceBtn.onclick = confirmNightChoice;
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function'){
+                ensureNightSkipButton(
+                    mafiaTargetIndex === null &&
+                    maniacTargetIndex === null &&
+                    commissionerTargetIndex === null &&
+                    doctorTargetIndex === null
+                );
+            }
 
-        renderWakeText();
+            choiceBtn.textContent = 'Выбор';
+            choiceBtn.onclick = confirmNightChoice;
+
+            renderWakeText();
+        }
+    }catch(error){
+        console.error(error);
     }
 
     renderTable();
@@ -642,7 +638,7 @@ function renderWakeText(){
         actionText.textContent = '';
     }
 
-    safeRenderChoiceHistory();
+    renderChoiceHistory();
 }
 
 function safeRenderChoiceHistory(){
@@ -1185,11 +1181,6 @@ function clearBrokenOldState(){
 }
 
 function bindEvents(){
-    const refreshBtn = document.getElementById('refreshBtn');
-    if(refreshBtn){
-        refreshBtn.addEventListener('click', () => location.reload());
-    }
-
     document.getElementById('addBtn').addEventListener('click', addRow);
     document.getElementById('removeBtn').addEventListener('click', removeRow);
     document.getElementById('startBtn').addEventListener('click', startDay);
