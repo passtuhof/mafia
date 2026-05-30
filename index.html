@@ -422,6 +422,10 @@ function loadState(){
     }
 }
 
+function getPlayerNameByIndex(index){
+    return players[index] ? escapeHtml(players[index].name) : '';
+}
+
 function escapeHtml(value){
     return String(value)
         .replaceAll('&','&amp;')
@@ -545,10 +549,19 @@ function renderScreen(){
             doctorTargetIndex !== null;
 
         wakeBlock.style.display = hasHistory ? 'block' : 'none';
-        document.getElementById('wakeTitle').textContent = '';
-        document.getElementById('wakeTitle').textContent = nightSkipped ? 'Ночь пропущена…' : '';
-        document.getElementById('actionText').textContent = '';
-        renderChoiceHistory();
+
+        const wakeTitleEl = document.getElementById('wakeTitle');
+        const actionTextEl = document.getElementById('actionText');
+
+        if(wakeTitleEl){
+            wakeTitleEl.textContent = nightSkipped ? 'Ночь пропущена…' : '';
+        }
+
+        if(actionTextEl){
+            actionTextEl.textContent = '';
+        }
+
+        safeRenderChoiceHistory();
     }else if(gameStage === 'voting'){
         phaseTitle.textContent = 'Сейчас день';
         startButtons.style.display = 'none';
@@ -608,7 +621,18 @@ function renderWakeText(){
         actionText.textContent = '';
     }
 
-    renderChoiceHistory();
+    safeRenderChoiceHistory();
+}
+
+function safeRenderChoiceHistory(){
+    try{
+        renderChoiceHistory();
+    }catch(error){
+        const historyEl = document.getElementById('choiceHistory');
+        if(historyEl){
+            historyEl.innerHTML = '';
+        }
+    }
 }
 
 function renderChoiceHistory(){
@@ -627,7 +651,7 @@ function renderChoiceHistory(){
             mafiaTargetIndex === maniacTargetIndex &&
             !mafiaBlocked && !maniacBlocked
         ){
-            const name = escapeHtml(players[mafiaTargetIndex].name);
+            const name = getPlayerNameByIndex(mafiaTargetIndex);
             history.push(`— Мафия и Маньяк <span style='color:#d60000'>убили «${name}»</span>`);
         }
         else if(
@@ -638,7 +662,7 @@ function renderChoiceHistory(){
         }
         else{
             if(mafiaKilled){
-                const name = escapeHtml(players[mafiaTargetIndex].name);
+                const name = getPlayerNameByIndex(mafiaTargetIndex);
 
                 history.push(
                     mafiaBlocked
@@ -648,7 +672,7 @@ function renderChoiceHistory(){
             }
 
             if(maniacKilled){
-                const name = escapeHtml(players[maniacTargetIndex].name);
+                const name = getPlayerNameByIndex(maniacTargetIndex);
 
                 history.push(
                     maniacBlocked
@@ -682,19 +706,19 @@ function renderChoiceHistory(){
         }
     }else{
         if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
-            history.push(`— Мафия выбрала «${escapeHtml(players[mafiaTargetIndex].name)}»`);
+            history.push(`— Мафия выбрала «${getPlayerNameByIndex(mafiaTargetIndex)}»`);
         }
 
         if(maniacTargetIndex !== null && players[maniacTargetIndex]){
-            history.push(`— Маньяк выбрал «${escapeHtml(players[maniacTargetIndex].name)}»`);
+            history.push(`— Маньяк выбрал «${getPlayerNameByIndex(maniacTargetIndex)}»`);
         }
 
         if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
-            history.push(`— Комиссар выбрал «${escapeHtml(players[commissionerTargetIndex].name)}»`);
+            history.push(`— Комиссар выбрал «${getPlayerNameByIndex(commissionerTargetIndex)}»`);
         }
 
         if(doctorTargetIndex !== null && players[doctorTargetIndex]){
-            history.push(`— Доктор выбрал «${escapeHtml(players[doctorTargetIndex].name)}»`);
+            history.push(`— Доктор выбрал «${getPlayerNameByIndex(doctorTargetIndex)}»`);
         }
     }
 
