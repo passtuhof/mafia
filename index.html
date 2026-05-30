@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
+<!-- history-refresh-fix: day summary persists after reload -->
 <!-- columns-fixed: role 150px -->
 
 <style>
@@ -331,6 +332,7 @@ let gameStage = 'intro';
 
 let activeWakeRole = null;
 let selectedTargetIndex = null;
+let nightSkipped = false;
 let votingTargetIndex = null;
 
 let mafiaTargetIndex = null;
@@ -402,6 +404,8 @@ function loadState(){
         gameStage = state.gameStage || 'intro';
         activeWakeRole = normalizeRole(state.activeWakeRole || null);
         selectedTargetIndex = Number.isInteger(state.selectedTargetIndex) ? state.selectedTargetIndex : null;
+        nightSkipped = Boolean(state.nightSkipped);
+        votingTargetIndex = Number.isInteger(state.votingTargetIndex) ? state.votingTargetIndex : null;
         votingTargetIndex = Number.isInteger(state.votingTargetIndex) ? state.votingTargetIndex : null;
         mafiaTargetIndex = Number.isInteger(state.mafiaTargetIndex) ? state.mafiaTargetIndex : null;
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
@@ -639,7 +643,7 @@ function renderWakeText(){
         actionText.textContent = '';
     }
 
-    renderChoiceHistory();
+    safeRenderChoiceHistory();
 }
 
 function safeRenderChoiceHistory(){
