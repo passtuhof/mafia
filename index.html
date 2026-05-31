@@ -23,8 +23,31 @@ body{
 
 h1{
     text-align:center;
-    margin-bottom:20px;
     color:#d60000;
+    margin:0;
+}
+
+.top-header{
+    display:grid;
+    grid-template-columns:40px 1fr 40px;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.top-spacer{
+    width:40px;
+    height:40px;
+}
+
+.top-finish-btn{
+    width:40px;
+    height:40px;
+    border:none;
+    background:transparent;
+    color:#d60000;
+    font-size:22px;
+    cursor:pointer;
+    padding:0;
 }
 
 .phase-title{
@@ -272,12 +295,20 @@ select option:disabled{
 
 .yes-btn{background:#d60000;}
 .no-btn{background:#333;}
+
+#finishBtn{
+    display:none !important;
+}
 </style>
 </head>
 
 <body>
 
-<h1>Мафия</h1>
+<div class="top-header">
+    <div class="top-spacer"></div>
+    <h1>Мафия</h1>
+    <button id="topFinishBtn" class="top-finish-btn" type="button">❌</button>
+</div>
 
 <div class="phase-title" id="phaseTitle">Знакомство</div>
 
@@ -1186,6 +1217,11 @@ function clearBrokenOldState(){
 }
 
 function bindEvents(){
+    const topFinishBtn = document.getElementById('topFinishBtn');
+    if(topFinishBtn){
+        topFinishBtn.addEventListener('click', openFinishModal);
+    }
+
     document.getElementById('addBtn').addEventListener('click', addRow);
     document.getElementById('removeBtn').addEventListener('click', removeRow);
     document.getElementById('startBtn').addEventListener('click', startDay);
