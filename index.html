@@ -273,11 +273,14 @@ select option:disabled{
 .yes-btn{background:#d60000;}
 .no-btn{background:#333;}
 
+
+
+
 .table3d-overlay{
     display:none;
     position:fixed;
     inset:0;
-    background:radial-gradient(circle at center, #262626 0%, #111 70%);
+    background:radial-gradient(circle at center, #262626 0%, #0c0c0c 72%);
     z-index:2000;
     overflow:hidden;
     color:white;
@@ -314,32 +317,43 @@ select option:disabled{
 .table3d-scene{
     width:100%;
     height:100%;
-    perspective:900px;
-    perspective-origin:50% 42%;
+    perspective:1050px;
+    perspective-origin:50% 50%;
     touch-action:none;
     user-select:none;
+    overflow:hidden;
+}
+
+.table3d-camera{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:760px;
+    height:760px;
+    transform-style:preserve-3d;
+    transform:translate(-50%,-50%) rotateX(58deg) rotateZ(0deg) scale(1);
 }
 
 .table3d-world{
     position:absolute;
     left:50%;
     top:50%;
-    width:720px;
-    height:720px;
+    width:760px;
+    height:760px;
     transform-style:preserve-3d;
-    transform:translate(-50%,-50%) rotateX(62deg) rotateZ(0deg);
+    transform:translate(-50%,-50%);
 }
 
 .table3d-floor{
     position:absolute;
     left:50%;
     top:50%;
-    width:900px;
-    height:900px;
-    transform:translate(-50%,-50%) translateZ(-24px);
+    width:960px;
+    height:960px;
+    transform:translate(-50%,-50%) translateZ(-34px);
     border-radius:50%;
     background:
-        radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(0,0,0,0.25) 58%, rgba(0,0,0,0.55)),
+        radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(0,0,0,0.25) 58%, rgba(0,0,0,0.6)),
         repeating-radial-gradient(circle at center, transparent 0, transparent 44px, rgba(255,255,255,0.025) 45px);
 }
 
@@ -356,7 +370,7 @@ select option:disabled{
     border:10px solid #250404;
     box-shadow:
         0 0 0 8px rgba(0,0,0,0.35),
-        0 30px 60px rgba(0,0,0,0.65);
+        0 34px 60px rgba(0,0,0,0.65);
 }
 
 .mafia-table::after{
@@ -375,46 +389,121 @@ select option:disabled{
     position:absolute;
     left:50%;
     top:50%;
-    width:112px;
-    height:82px;
-    margin-left:-56px;
-    margin-top:-41px;
+    width:130px;
+    height:130px;
+    margin-left:-65px;
+    margin-top:-65px;
     transform-style:preserve-3d;
 }
 
-.chair3d{
+.person3d{
     position:absolute;
     left:50%;
     top:50%;
-    width:74px;
-    height:58px;
-    transform:translate(-50%,-50%);
-    border-radius:16px 16px 10px 10px;
-    background:linear-gradient(135deg,#333,#161616);
+    width:76px;
+    height:96px;
+    transform-style:preserve-3d;
+    transform:translate(-50%,-50%) translateZ(28px);
+}
+
+.chair-seat3d{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:86px;
+    height:64px;
+    transform:translate(-50%,-50%) translateZ(6px);
+    border-radius:16px 16px 12px 12px;
+    background:linear-gradient(135deg,#333,#151515);
     border:2px solid #555;
     box-shadow:0 10px 22px rgba(0,0,0,0.45);
 }
 
-.chair3d::before{
-    content:'';
+.chair-back3d{
     position:absolute;
-    left:9px;
-    right:9px;
-    top:-22px;
-    height:28px;
-    border-radius:12px 12px 4px 4px;
-    background:linear-gradient(135deg,#444,#181818);
+    left:50%;
+    top:50%;
+    width:86px;
+    height:34px;
+    transform:translate(-50%,-72px) rotateX(68deg) translateZ(32px);
+    border-radius:14px 14px 5px 5px;
+    background:linear-gradient(135deg,#444,#191919);
     border:2px solid #555;
+}
+
+.body3d{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:42px;
+    height:54px;
+    transform:translate(-50%,-22px) translateZ(42px);
+    border-radius:18px 18px 10px 10px;
+    background:linear-gradient(135deg,#555,#222);
+    border:2px solid #777;
+}
+
+.head3d{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:32px;
+    height:32px;
+    transform:translate(-50%,-60px) translateZ(58px);
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #f0c6a0, #9b6542);
+    border:2px solid rgba(0,0,0,0.25);
+    box-shadow:0 6px 12px rgba(0,0,0,0.35);
+}
+
+.arm3d{
+    position:absolute;
+    top:50%;
+    width:12px;
+    height:42px;
+    border-radius:8px;
+    background:linear-gradient(#555,#222);
+    transform:translateY(-24px) translateZ(44px);
+}
+
+.arm3d.left{
+    left:13px;
+    transform:translateY(-24px) rotateZ(18deg) translateZ(44px);
+}
+
+.arm3d.right{
+    right:13px;
+    transform:translateY(-24px) rotateZ(-18deg) translateZ(44px);
+}
+
+.leg3d{
+    position:absolute;
+    top:50%;
+    width:13px;
+    height:42px;
+    border-radius:8px;
+    background:linear-gradient(#333,#111);
+    transform:translateY(14px) translateZ(28px);
+}
+
+.leg3d.left{
+    left:25px;
+    transform:translateY(14px) rotateZ(8deg) translateZ(28px);
+}
+
+.leg3d.right{
+    right:25px;
+    transform:translateY(14px) rotateZ(-8deg) translateZ(28px);
 }
 
 .player-label3d{
     position:absolute;
     left:50%;
     top:50%;
-    min-width:106px;
-    max-width:132px;
-    transform:translate(-50%,44px) rotateX(-62deg);
-    background:rgba(0,0,0,0.72);
+    min-width:112px;
+    max-width:142px;
+    transform:translate(-50%,70px) rotateX(-58deg);
+    background:rgba(0,0,0,0.76);
     border:1px solid rgba(255,255,255,0.25);
     border-radius:10px;
     padding:5px 7px;
@@ -428,7 +517,7 @@ select option:disabled{
 }
 
 .player-label3d.dead{
-    background:rgba(80,80,80,0.85);
+    background:rgba(80,80,80,0.9);
     color:#ddd;
 }
 
@@ -444,13 +533,18 @@ select option:disabled{
     position:absolute;
     left:50%;
     top:50%;
-    transform:translate(-50%,-50%) translateZ(36px);
-    font-size:28px;
+    transform:translate(-50%,-58px) translateZ(90px);
+    font-size:30px;
     filter:drop-shadow(0 4px 6px black);
 }
 
 .seat3d.dead .dead-skull3d{
     display:block;
+}
+
+.seat3d.dead .person3d{
+    opacity:0.35;
+    filter:grayscale(1);
 }
 
 .table3d-hint{
@@ -465,6 +559,7 @@ select option:disabled{
 }
 
 @media(max-width:700px){
+    .table3d-camera,
     .table3d-world{
         width:560px;
         height:560px;
@@ -476,16 +571,20 @@ select option:disabled{
     }
 
     .seat3d{
-        width:96px;
-        height:72px;
-        margin-left:-48px;
-        margin-top:-36px;
+        width:110px;
+        height:110px;
+        margin-left:-55px;
+        margin-top:-55px;
     }
 
     .player-label3d{
         min-width:92px;
         max-width:112px;
         font-size:12px;
+    }
+
+    .person3d{
+        transform:translate(-50%,-50%) translateZ(24px) scale(.82);
     }
 }
 
@@ -535,6 +634,7 @@ select option:disabled{
 </div>
 
 
+
 <div class="table3d-overlay" id="table3dOverlay">
     <div class="table3d-topbar">
         <div class="table3d-title">3D стол</div>
@@ -542,14 +642,16 @@ select option:disabled{
     </div>
 
     <div class="table3d-scene" id="table3dScene">
-        <div class="table3d-world" id="table3dWorld">
-            <div class="table3d-floor"></div>
-            <div class="mafia-table"></div>
-            <div id="table3dSeats"></div>
+        <div class="table3d-camera" id="table3dCamera">
+            <div class="table3d-world" id="table3dWorld">
+                <div class="table3d-floor"></div>
+                <div class="mafia-table"></div>
+                <div id="table3dSeats"></div>
+            </div>
         </div>
     </div>
 
-    <div class="table3d-hint">Потяни пальцем или мышкой, чтобы вращать стол на 360°</div>
+    <div class="table3d-hint">Потяни пальцем: влево/вправо — поворот, вверх/вниз — угол камеры</div>
 </div>
 
 <script>
@@ -1611,6 +1713,183 @@ function init3DTableControls(){
     scene.addEventListener('pointercancel', () => {
         table3dDragging = false;
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    init3DTableControls();
+    setTimeout(ensure3DTableButton, 0);
+});
+
+
+/* improved 3D spherical camera */
+function get3DPlayers(){
+    if(Array.isArray(players) && players.length){
+        const filled = players.filter(player => player.name && player.name.trim() !== '');
+        return filled.length ? filled : players;
+    }
+
+    return [];
+}
+
+function render3DTable(){
+    const seatsContainer = document.getElementById('table3dSeats');
+    if(!seatsContainer){
+        return;
+    }
+
+    seatsContainer.innerHTML = '';
+
+    const visiblePlayers = get3DPlayers();
+    const total = Math.max(visiblePlayers.length, 1);
+    const radius = window.innerWidth < 700 ? 235 : 310;
+
+    visiblePlayers.forEach((player, index) => {
+        const angle = (360 / total) * index;
+        const seat = document.createElement('div');
+        seat.className = 'seat3d' + (player.alive === false ? ' dead' : '');
+
+        seat.style.transform = `
+            rotateZ(${angle}deg)
+            translateY(-${radius}px)
+            rotateZ(${-angle}deg)
+            translateZ(24px)
+        `;
+
+        const safeName = escapeHtml(player.name || `Игрок ${index + 1}`);
+        const safeRole = escapeHtml(player.role || '');
+
+        seat.innerHTML = `
+            <div class="chair-seat3d"></div>
+            <div class="chair-back3d"></div>
+            <div class="person3d">
+                <div class="leg3d left"></div>
+                <div class="leg3d right"></div>
+                <div class="body3d"></div>
+                <div class="arm3d left"></div>
+                <div class="arm3d right"></div>
+                <div class="head3d"></div>
+            </div>
+            <div class="dead-skull3d">☠️</div>
+            <div class="player-label3d ${player.alive === false ? 'dead' : ''}">
+                ${player.alive === false ? '☠️ ' : ''}${safeName}
+                <span class="role3d">${safeRole}</span>
+            </div>
+        `;
+
+        seatsContainer.appendChild(seat);
+    });
+}
+
+let table3dYaw = 0;
+let table3dPitch = 58;
+let table3dScale = 1;
+let table3dDragging = false;
+let table3dLastX = 0;
+let table3dLastY = 0;
+
+function update3DWorld(){
+    const camera = document.getElementById('table3dCamera');
+
+    if(camera){
+        const pitch = Math.max(18, Math.min(82, table3dPitch));
+        table3dPitch = pitch;
+        camera.style.transform = `translate(-50%,-50%) rotateX(${pitch}deg) rotateZ(${table3dYaw}deg) scale(${table3dScale})`;
+    }
+}
+
+function open3DTable(){
+    const overlay = document.getElementById('table3dOverlay');
+    if(!overlay){
+        return;
+    }
+
+    render3DTable();
+    overlay.style.display = 'block';
+    update3DWorld();
+}
+
+function close3DTable(){
+    const overlay = document.getElementById('table3dOverlay');
+    if(overlay){
+        overlay.style.display = 'none';
+    }
+}
+
+function ensure3DTableButton(){
+    let btn = document.getElementById('table3dOpenBtn');
+
+    if(!btn){
+        btn = document.createElement('button');
+        btn.className = 'main-btn choice-btn';
+        btn.id = 'table3dOpenBtn';
+        btn.type = 'button';
+        btn.textContent = 'Стол';
+        btn.addEventListener('click', open3DTable);
+    }
+
+    const gameButtons = document.getElementById('gameButtons');
+    const startButtons = document.getElementById('startButtons');
+
+    if(gameButtons && gameButtons.style.display !== 'none'){
+        gameButtons.appendChild(btn);
+    }else if(startButtons){
+        startButtons.appendChild(btn);
+    }
+}
+
+function init3DTableControls(){
+    const scene = document.getElementById('table3dScene');
+    const closeBtn = document.getElementById('table3dCloseBtn');
+
+    if(closeBtn){
+        closeBtn.addEventListener('click', close3DTable);
+    }
+
+    if(!scene){
+        return;
+    }
+
+    scene.addEventListener('pointerdown', event => {
+        table3dDragging = true;
+        table3dLastX = event.clientX;
+        table3dLastY = event.clientY;
+        scene.setPointerCapture(event.pointerId);
+    });
+
+    scene.addEventListener('pointermove', event => {
+        if(!table3dDragging){
+            return;
+        }
+
+        const dx = event.clientX - table3dLastX;
+        const dy = event.clientY - table3dLastY;
+
+        table3dLastX = event.clientX;
+        table3dLastY = event.clientY;
+
+        table3dYaw += dx * 0.45;
+        table3dPitch -= dy * 0.28;
+
+        update3DWorld();
+    });
+
+    scene.addEventListener('pointerup', event => {
+        table3dDragging = false;
+        try{
+            scene.releasePointerCapture(event.pointerId);
+        }catch(error){}
+    });
+
+    scene.addEventListener('pointercancel', () => {
+        table3dDragging = false;
+    });
+
+    scene.addEventListener('wheel', event => {
+        event.preventDefault();
+        table3dScale += event.deltaY > 0 ? -0.06 : 0.06;
+        table3dScale = Math.max(0.72, Math.min(1.35, table3dScale));
+        update3DWorld();
+    }, {passive:false});
 }
 
 document.addEventListener('DOMContentLoaded', () => {
