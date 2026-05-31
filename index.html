@@ -273,55 +273,56 @@ select option:disabled{
 .yes-btn{background:#d60000;}
 .no-btn{background:#333;}
 
-
-
-
+/* 3D_TABLE_MODE_START */
 .table3d-overlay{
     display:none;
     position:fixed;
     inset:0;
-    background:radial-gradient(circle at center, #262626 0%, #0c0c0c 72%);
-    z-index:2000;
+    background:radial-gradient(circle at 50% 42%, #2a2a2a 0%, #090909 72%);
+    z-index:3000;
     overflow:hidden;
     color:white;
 }
 
-.table3d-topbar{
+.table3d-bar{
     position:absolute;
     top:12px;
     left:12px;
     right:12px;
+    z-index:5;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    z-index:5;
+    pointer-events:none;
 }
 
-.table3d-title{
-    font-size:22px;
-    font-weight:bold;
+.table3d-bar-title{
     color:#d60000;
+    font-weight:800;
+    font-size:22px;
+    text-shadow:0 2px 8px black;
 }
 
 .table3d-close{
+    pointer-events:auto;
+    width:42px;
+    height:42px;
     border:none;
+    border-radius:12px;
     background:#d60000;
     color:white;
-    height:40px;
-    min-width:40px;
-    border-radius:10px;
-    font-size:22px;
+    font-size:26px;
+    line-height:42px;
     cursor:pointer;
 }
 
 .table3d-scene{
-    width:100%;
-    height:100%;
-    perspective:1050px;
+    position:absolute;
+    inset:0;
+    perspective:1000px;
     perspective-origin:50% 50%;
     touch-action:none;
     user-select:none;
-    overflow:hidden;
 }
 
 .table3d-camera{
@@ -348,16 +349,16 @@ select option:disabled{
     position:absolute;
     left:50%;
     top:50%;
-    width:960px;
-    height:960px;
-    transform:translate(-50%,-50%) translateZ(-34px);
+    width:980px;
+    height:980px;
+    transform:translate(-50%,-50%) translateZ(-38px);
     border-radius:50%;
     background:
-        radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(0,0,0,0.25) 58%, rgba(0,0,0,0.6)),
-        repeating-radial-gradient(circle at center, transparent 0, transparent 44px, rgba(255,255,255,0.025) 45px);
+        radial-gradient(circle, rgba(255,255,255,.08), rgba(0,0,0,.25) 55%, rgba(0,0,0,.72)),
+        repeating-radial-gradient(circle, transparent 0, transparent 44px, rgba(255,255,255,.025) 45px);
 }
 
-.mafia-table{
+.table3d-table{
     position:absolute;
     left:50%;
     top:50%;
@@ -365,23 +366,20 @@ select option:disabled{
     height:360px;
     transform:translate(-50%,-50%) translateZ(18px);
     border-radius:50%;
-    background:
-        radial-gradient(circle at 35% 30%, #8a1f1f, #3c0808 58%, #160303 100%);
+    background:radial-gradient(circle at 35% 30%, #8f2020, #3a0707 60%, #140202);
     border:10px solid #250404;
-    box-shadow:
-        0 0 0 8px rgba(0,0,0,0.35),
-        0 34px 60px rgba(0,0,0,0.65);
+    box-shadow:0 0 0 8px rgba(0,0,0,.35), 0 32px 60px rgba(0,0,0,.7);
 }
 
-.mafia-table::after{
+.table3d-table::after{
     content:'МАФИЯ';
     position:absolute;
     left:50%;
     top:50%;
     transform:translate(-50%,-50%) rotateX(180deg);
-    color:rgba(255,255,255,0.09);
-    font-size:46px;
-    font-weight:bold;
+    color:rgba(255,255,255,.09);
+    font-size:44px;
+    font-weight:900;
     letter-spacing:4px;
 }
 
@@ -389,21 +387,11 @@ select option:disabled{
     position:absolute;
     left:50%;
     top:50%;
-    width:130px;
-    height:130px;
-    margin-left:-65px;
-    margin-top:-65px;
+    width:136px;
+    height:136px;
+    margin-left:-68px;
+    margin-top:-68px;
     transform-style:preserve-3d;
-}
-
-.person3d{
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:76px;
-    height:96px;
-    transform-style:preserve-3d;
-    transform:translate(-50%,-50%) translateZ(28px);
 }
 
 .chair-seat3d{
@@ -412,34 +400,44 @@ select option:disabled{
     top:50%;
     width:86px;
     height:64px;
-    transform:translate(-50%,-50%) translateZ(6px);
+    transform:translate(-50%,-50%) translateZ(8px);
     border-radius:16px 16px 12px 12px;
-    background:linear-gradient(135deg,#333,#151515);
-    border:2px solid #555;
-    box-shadow:0 10px 22px rgba(0,0,0,0.45);
+    background:linear-gradient(135deg,#383838,#151515);
+    border:2px solid #5a5a5a;
+    box-shadow:0 10px 22px rgba(0,0,0,.5);
 }
 
 .chair-back3d{
     position:absolute;
     left:50%;
     top:50%;
-    width:86px;
-    height:34px;
-    transform:translate(-50%,-72px) rotateX(68deg) translateZ(32px);
+    width:88px;
+    height:36px;
+    transform:translate(-50%,-76px) rotateX(68deg) translateZ(34px);
     border-radius:14px 14px 5px 5px;
-    background:linear-gradient(135deg,#444,#191919);
-    border:2px solid #555;
+    background:linear-gradient(135deg,#484848,#191919);
+    border:2px solid #5a5a5a;
+}
+
+.person3d{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:78px;
+    height:98px;
+    transform:translate(-50%,-50%) translateZ(30px);
+    transform-style:preserve-3d;
 }
 
 .body3d{
     position:absolute;
     left:50%;
     top:50%;
-    width:42px;
-    height:54px;
+    width:44px;
+    height:56px;
     transform:translate(-50%,-22px) translateZ(42px);
     border-radius:18px 18px 10px 10px;
-    background:linear-gradient(135deg,#555,#222);
+    background:linear-gradient(135deg,#5a5a5a,#222);
     border:2px solid #777;
 }
 
@@ -447,13 +445,13 @@ select option:disabled{
     position:absolute;
     left:50%;
     top:50%;
-    width:32px;
-    height:32px;
-    transform:translate(-50%,-60px) translateZ(58px);
+    width:34px;
+    height:34px;
+    transform:translate(-50%,-62px) translateZ(60px);
     border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #f0c6a0, #9b6542);
-    border:2px solid rgba(0,0,0,0.25);
-    box-shadow:0 6px 12px rgba(0,0,0,0.35);
+    border:2px solid rgba(0,0,0,.25);
+    box-shadow:0 6px 12px rgba(0,0,0,.35);
 }
 
 .arm3d{
@@ -463,7 +461,6 @@ select option:disabled{
     height:42px;
     border-radius:8px;
     background:linear-gradient(#555,#222);
-    transform:translateY(-24px) translateZ(44px);
 }
 
 .arm3d.left{
@@ -483,7 +480,6 @@ select option:disabled{
     height:42px;
     border-radius:8px;
     background:linear-gradient(#333,#111);
-    transform:translateY(14px) translateZ(28px);
 }
 
 .leg3d.left{
@@ -496,54 +492,54 @@ select option:disabled{
     transform:translateY(14px) rotateZ(-8deg) translateZ(28px);
 }
 
-.player-label3d{
+.label3d{
     position:absolute;
     left:50%;
     top:50%;
     min-width:112px;
-    max-width:142px;
-    transform:translate(-50%,70px) rotateX(-58deg);
-    background:rgba(0,0,0,0.76);
-    border:1px solid rgba(255,255,255,0.25);
+    max-width:146px;
+    transform:translate(-50%,72px) rotateX(-58deg);
+    background:rgba(0,0,0,.78);
+    border:1px solid rgba(255,255,255,.25);
     border-radius:10px;
     padding:5px 7px;
     text-align:center;
     font-size:13px;
     line-height:1.15;
-    box-shadow:0 8px 18px rgba(0,0,0,0.45);
+    box-shadow:0 8px 18px rgba(0,0,0,.45);
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.player-label3d.dead{
-    background:rgba(80,80,80,0.9);
+.label3d.dead{
+    background:rgba(80,80,80,.9);
     color:#ddd;
 }
 
-.player-label3d .role3d{
+.label3d .role3d{
     display:block;
     margin-top:2px;
     font-size:12px;
-    opacity:0.9;
+    opacity:.9;
 }
 
-.dead-skull3d{
+.skull3d{
     display:none;
     position:absolute;
     left:50%;
     top:50%;
-    transform:translate(-50%,-58px) translateZ(90px);
+    transform:translate(-50%,-60px) translateZ(92px);
     font-size:30px;
     filter:drop-shadow(0 4px 6px black);
 }
 
-.seat3d.dead .dead-skull3d{
+.seat3d.dead .skull3d{
     display:block;
 }
 
 .seat3d.dead .person3d{
-    opacity:0.35;
+    opacity:.32;
     filter:grayscale(1);
 }
 
@@ -552,10 +548,11 @@ select option:disabled{
     left:12px;
     right:12px;
     bottom:14px;
-    text-align:center;
-    color:#ccc;
-    font-size:14px;
     z-index:5;
+    text-align:center;
+    color:#d0d0d0;
+    font-size:14px;
+    text-shadow:0 2px 6px black;
 }
 
 @media(max-width:700px){
@@ -565,28 +562,29 @@ select option:disabled{
         height:560px;
     }
 
-    .mafia-table{
+    .table3d-table{
         width:270px;
         height:270px;
     }
 
     .seat3d{
-        width:110px;
-        height:110px;
-        margin-left:-55px;
-        margin-top:-55px;
+        width:112px;
+        height:112px;
+        margin-left:-56px;
+        margin-top:-56px;
     }
 
-    .player-label3d{
+    .person3d{
+        transform:translate(-50%,-50%) translateZ(26px) scale(.82);
+    }
+
+    .label3d{
         min-width:92px;
         max-width:112px;
         font-size:12px;
     }
-
-    .person3d{
-        transform:translate(-50%,-50%) translateZ(24px) scale(.82);
-    }
 }
+/* 3D_TABLE_MODE_END */
 
 </style>
 </head>
@@ -634,24 +632,23 @@ select option:disabled{
 </div>
 
 
-
 <div class="table3d-overlay" id="table3dOverlay">
-    <div class="table3d-topbar">
-        <div class="table3d-title">3D стол</div>
+    <div class="table3d-bar">
+        <div class="table3d-bar-title">3D стол</div>
         <button class="table3d-close" id="table3dCloseBtn" type="button">×</button>
     </div>
 
     <div class="table3d-scene" id="table3dScene">
         <div class="table3d-camera" id="table3dCamera">
-            <div class="table3d-world" id="table3dWorld">
+            <div class="table3d-world">
                 <div class="table3d-floor"></div>
-                <div class="mafia-table"></div>
+                <div class="table3d-table"></div>
                 <div id="table3dSeats"></div>
             </div>
         </div>
     </div>
 
-    <div class="table3d-hint">Потяни пальцем: влево/вправо — поворот, вверх/вниз — угол камеры</div>
+    <div class="table3d-hint">Двигай пальцем: влево/вправо — поворот, вверх/вниз — угол камеры</div>
 </div>
 
 <script>
@@ -956,7 +953,7 @@ function renderScreen(){
     }
 
     renderTable();
-    ensure3DTableButton();
+    if(typeof ensure3DButton === 'function') ensure3DButton();
     saveState();
 }
 
@@ -1574,180 +1571,40 @@ bindEvents();
 loadState();
 renderScreen();
 
-function get3DPlayers(){
-    if(Array.isArray(players) && players.length){
-        const filled = players.filter(player => player.name && player.name.trim() !== '');
-        return filled.length ? filled : players;
-    }
-
-    return [];
-}
-
-function render3DTable(){
-    const seatsContainer = document.getElementById('table3dSeats');
-    if(!seatsContainer){
-        return;
-    }
-
-    seatsContainer.innerHTML = '';
-
-    const visiblePlayers = get3DPlayers();
-    const total = Math.max(visiblePlayers.length, 1);
-    const radius = window.innerWidth < 700 ? 235 : 310;
-
-    visiblePlayers.forEach((player, index) => {
-        const angle = (360 / total) * index;
-        const seat = document.createElement('div');
-        seat.className = 'seat3d' + (player.alive === false ? ' dead' : '');
-
-        seat.style.transform = `
-            rotateZ(${angle}deg)
-            translateY(-${radius}px)
-            rotateZ(${-angle}deg)
-            translateZ(28px)
-        `;
-
-        const safeName = escapeHtml(player.name || `Игрок ${index + 1}`);
-        const safeRole = escapeHtml(player.role || '');
-
-        seat.innerHTML = `
-            <div class="chair3d"></div>
-            <div class="dead-skull3d">☠️</div>
-            <div class="player-label3d ${player.alive === false ? 'dead' : ''}">
-                ${player.alive === false ? '☠️ ' : ''}${safeName}
-                <span class="role3d">${safeRole}</span>
-            </div>
-        `;
-
-        seatsContainer.appendChild(seat);
-    });
-}
-
-let table3dRotation = 0;
+/* 3D_TABLE_MODE_START */
+let table3dYaw = 0;
+let table3dPitch = 58;
+let table3dZoom = 1;
 let table3dDragging = false;
 let table3dLastX = 0;
+let table3dLastY = 0;
 
-function update3DWorld(){
-    const world = document.getElementById('table3dWorld');
-    if(world){
-        world.style.transform = `translate(-50%,-50%) rotateX(62deg) rotateZ(${table3dRotation}deg)`;
-    }
-}
-
-function open3DTable(){
-    const overlay = document.getElementById('table3dOverlay');
-    if(!overlay){
-        return;
-    }
-
-    render3DTable();
-    overlay.style.display = 'block';
-    update3DWorld();
-}
-
-function close3DTable(){
-    const overlay = document.getElementById('table3dOverlay');
-    if(overlay){
-        overlay.style.display = 'none';
-    }
-}
-
-function ensure3DTableButton(){
-    if(document.getElementById('table3dOpenBtn')){
-        return;
-    }
-
-    const btn = document.createElement('button');
-    btn.className = 'main-btn choice-btn';
-    btn.id = 'table3dOpenBtn';
-    btn.type = 'button';
-    btn.textContent = 'Стол';
-    btn.addEventListener('click', open3DTable);
-
-    const gameButtons = document.getElementById('gameButtons');
-    const startButtons = document.getElementById('startButtons');
-
-    if(gameButtons && gameButtons.style.display !== 'none'){
-        gameButtons.appendChild(btn);
-    }else if(startButtons){
-        startButtons.appendChild(btn);
-    }
-}
-
-function init3DTableControls(){
-    const scene = document.getElementById('table3dScene');
-    const closeBtn = document.getElementById('table3dCloseBtn');
-
-    if(closeBtn){
-        closeBtn.addEventListener('click', close3DTable);
-    }
-
-    if(!scene){
-        return;
-    }
-
-    scene.addEventListener('pointerdown', event => {
-        table3dDragging = true;
-        table3dLastX = event.clientX;
-        scene.setPointerCapture(event.pointerId);
-    });
-
-    scene.addEventListener('pointermove', event => {
-        if(!table3dDragging){
-            return;
-        }
-
-        const dx = event.clientX - table3dLastX;
-        table3dLastX = event.clientX;
-        table3dRotation += dx * 0.45;
-        update3DWorld();
-    });
-
-    scene.addEventListener('pointerup', event => {
-        table3dDragging = false;
-        try{
-            scene.releasePointerCapture(event.pointerId);
-        }catch(error){}
-    });
-
-    scene.addEventListener('pointercancel', () => {
-        table3dDragging = false;
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    init3DTableControls();
-    setTimeout(ensure3DTableButton, 0);
-});
-
-
-/* improved 3D spherical camera */
 function get3DPlayers(){
-    if(Array.isArray(players) && players.length){
-        const filled = players.filter(player => player.name && player.name.trim() !== '');
-        return filled.length ? filled : players;
+    if(!Array.isArray(players)){
+        return [];
     }
 
-    return [];
+    const namedPlayers = players.filter(player => player.name && player.name.trim() !== '');
+    return namedPlayers.length ? namedPlayers : players;
 }
 
 function render3DTable(){
-    const seatsContainer = document.getElementById('table3dSeats');
-    if(!seatsContainer){
+    const seats = document.getElementById('table3dSeats');
+    if(!seats){
         return;
     }
 
-    seatsContainer.innerHTML = '';
+    seats.innerHTML = '';
 
-    const visiblePlayers = get3DPlayers();
-    const total = Math.max(visiblePlayers.length, 1);
+    const list = get3DPlayers();
+    const total = Math.max(list.length, 1);
     const radius = window.innerWidth < 700 ? 235 : 310;
 
-    visiblePlayers.forEach((player, index) => {
-        const angle = (360 / total) * index;
+    list.forEach((player, index) => {
+        const angle = 360 / total * index;
         const seat = document.createElement('div');
-        seat.className = 'seat3d' + (player.alive === false ? ' dead' : '');
 
+        seat.className = 'seat3d' + (player.alive === false ? ' dead' : '');
         seat.style.transform = `
             rotateZ(${angle}deg)
             translateY(-${radius}px)
@@ -1755,8 +1612,8 @@ function render3DTable(){
             translateZ(24px)
         `;
 
-        const safeName = escapeHtml(player.name || `Игрок ${index + 1}`);
-        const safeRole = escapeHtml(player.role || '');
+        const name = escapeHtml(player.name || `Игрок ${index + 1}`);
+        const role = escapeHtml(player.role || '');
 
         seat.innerHTML = `
             <div class="chair-seat3d"></div>
@@ -1769,32 +1626,28 @@ function render3DTable(){
                 <div class="arm3d right"></div>
                 <div class="head3d"></div>
             </div>
-            <div class="dead-skull3d">☠️</div>
-            <div class="player-label3d ${player.alive === false ? 'dead' : ''}">
-                ${player.alive === false ? '☠️ ' : ''}${safeName}
-                <span class="role3d">${safeRole}</span>
+            <div class="skull3d">☠️</div>
+            <div class="label3d ${player.alive === false ? 'dead' : ''}">
+                ${player.alive === false ? '☠️ ' : ''}${name}
+                <span class="role3d">${role}</span>
             </div>
         `;
 
-        seatsContainer.appendChild(seat);
+        seats.appendChild(seat);
     });
 }
 
-let table3dYaw = 0;
-let table3dPitch = 58;
-let table3dScale = 1;
-let table3dDragging = false;
-let table3dLastX = 0;
-let table3dLastY = 0;
-
-function update3DWorld(){
+function update3DCamera(){
     const camera = document.getElementById('table3dCamera');
-
-    if(camera){
-        const pitch = Math.max(18, Math.min(82, table3dPitch));
-        table3dPitch = pitch;
-        camera.style.transform = `translate(-50%,-50%) rotateX(${pitch}deg) rotateZ(${table3dYaw}deg) scale(${table3dScale})`;
+    if(!camera){
+        return;
     }
+
+    table3dPitch = Math.max(18, Math.min(82, table3dPitch));
+    table3dZoom = Math.max(0.72, Math.min(1.35, table3dZoom));
+
+    camera.style.transform =
+        `translate(-50%,-50%) rotateX(${table3dPitch}deg) rotateZ(${table3dYaw}deg) scale(${table3dZoom})`;
 }
 
 function open3DTable(){
@@ -1805,7 +1658,7 @@ function open3DTable(){
 
     render3DTable();
     overlay.style.display = 'block';
-    update3DWorld();
+    update3DCamera();
 }
 
 function close3DTable(){
@@ -1815,7 +1668,7 @@ function close3DTable(){
     }
 }
 
-function ensure3DTableButton(){
+function ensure3DButton(){
     let btn = document.getElementById('table3dOpenBtn');
 
     if(!btn){
@@ -1830,14 +1683,14 @@ function ensure3DTableButton(){
     const gameButtons = document.getElementById('gameButtons');
     const startButtons = document.getElementById('startButtons');
 
-    if(gameButtons && gameButtons.style.display !== 'none'){
+    if(gameButtons && getComputedStyle(gameButtons).display !== 'none'){
         gameButtons.appendChild(btn);
     }else if(startButtons){
         startButtons.appendChild(btn);
     }
 }
 
-function init3DTableControls(){
+function init3DTable(){
     const scene = document.getElementById('table3dScene');
     const closeBtn = document.getElementById('table3dCloseBtn');
 
@@ -1870,7 +1723,7 @@ function init3DTableControls(){
         table3dYaw += dx * 0.45;
         table3dPitch -= dy * 0.28;
 
-        update3DWorld();
+        update3DCamera();
     });
 
     scene.addEventListener('pointerup', event => {
@@ -1886,16 +1739,16 @@ function init3DTableControls(){
 
     scene.addEventListener('wheel', event => {
         event.preventDefault();
-        table3dScale += event.deltaY > 0 ? -0.06 : 0.06;
-        table3dScale = Math.max(0.72, Math.min(1.35, table3dScale));
-        update3DWorld();
+        table3dZoom += event.deltaY > 0 ? -0.06 : 0.06;
+        update3DCamera();
     }, {passive:false});
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    init3DTableControls();
-    setTimeout(ensure3DTableButton, 0);
+    init3DTable();
+    setTimeout(ensure3DButton, 0);
 });
+/* 3D_TABLE_MODE_END */
 
 </script>
 
