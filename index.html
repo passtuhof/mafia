@@ -76,7 +76,7 @@ h1{
     grid-template-columns:34px minmax(0,1fr) 150px 30px;
     align-items:center;
     gap:8px;
-    min-height:56px;
+    min-height:44px;
     padding:7px 8px;
     margin-bottom:0;
     background:linear-gradient(180deg,#1b1b1b,#141414);
@@ -86,7 +86,7 @@ h1{
 }
 
 .cell{
-    min-height:42px;
+    min-height:28px;
     border:none;
     display:flex;
     align-items:center;
@@ -102,13 +102,13 @@ h1{
 }
 
 .number-cell{
-    width:30px;
-    height:30px;
+    width:24px;
+    height:auto;
     justify-content:center;
     text-align:center;
-    border:1px solid #444;
-    border-radius:50%;
-    background:#111;
+    border:none;
+    border-radius:0;
+    background:transparent;
     color:white;
     font-weight:700;
     font-size:14px;
@@ -125,7 +125,7 @@ h1{
 }
 
 .drag-handle{
-    height:42px;
+    height:34px;
     width:26px;
     display:flex;
     align-items:center;
@@ -384,7 +384,7 @@ select option:disabled{
 
 /* smooth card drag */
 .drag-placeholder{
-    min-height:56px;
+    min-height:44px;
     border:2px dashed #d60000;
     border-radius:14px;
     background:rgba(214,0,0,0.12);
