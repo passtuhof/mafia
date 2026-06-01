@@ -430,6 +430,13 @@ body{
     overscroll-behavior:none;
 }
 
+
+html,
+body{
+    overscroll-behavior:none;
+    overscroll-behavior-y:none;
+}
+
 </style>
 </head>
 
@@ -1542,6 +1549,33 @@ function preventPageZoom(){
     }, {passive:false});
 }
 
+
+function preventPullToRefresh(){
+    let startY = 0;
+
+    document.addEventListener('touchstart', event => {
+        if(event.touches.length !== 1){
+            return;
+        }
+
+        startY = event.touches[0].clientY;
+    }, {passive:false});
+
+    document.addEventListener('touchmove', event => {
+        if(event.touches.length !== 1){
+            return;
+        }
+
+        const currentY = event.touches[0].clientY;
+        const isPullingDown = currentY > startY;
+        const isAtTop = window.scrollY <= 0 || document.documentElement.scrollTop <= 0;
+
+        if(isAtTop && isPullingDown){
+            event.preventDefault();
+        }
+    }, {passive:false});
+}
+
 function bindEvents(){
     const topFinishBtn = document.getElementById('topFinishBtn');
     if(topFinishBtn){
@@ -1594,6 +1628,7 @@ document.getElementById('playersTable').addEventListener('input', event => {
 }
 
 preventPageZoom();
+preventPullToRefresh();
 clearBrokenOldState();
 bindEvents();
 loadState();
