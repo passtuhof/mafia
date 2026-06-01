@@ -2,8 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Мафия</title>
+<!-- compact-zoom-fix: prevent zoom + smaller cards -->
 <!-- drag-number-fix: numbers update only after real card shift -->
 <!-- drag-fix-no-placeholder-number: no numbering in placeholder, no instant number change -->
 <!-- compact-number-preview-drag: lower cards + live numbering during drag -->
@@ -67,7 +68,7 @@ h1{
     width:100%;
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:5px;
 }
 
 .header-row{
@@ -78,9 +79,9 @@ h1{
     display:grid;
     grid-template-columns:28px minmax(0,1fr) 138px 28px;
     align-items:center;
-    gap:8px;
-    min-height:38px;
-    padding:7px 8px;
+    gap:5px;
+    min-height:28px;
+    padding:4px 7px;
     margin-bottom:0;
     background:linear-gradient(180deg,#1b1b1b,#141414);
     border:1px solid #333;
@@ -105,7 +106,7 @@ h1{
 }
 
 .number-cell{
-    width:22px;
+    width:20px;
     height:auto;
     justify-content:center;
     text-align:center;
@@ -114,7 +115,7 @@ h1{
     background:transparent;
     color:white;
     font-weight:700;
-    font-size:13px;
+    font-size:12px;
     flex-shrink:0;
 }
 
@@ -128,13 +129,13 @@ h1{
 }
 
 .drag-handle{
-    height:30px;
-    width:26px;
+    height:28px;
+    width:24px;
     display:flex;
     align-items:center;
     justify-content:center;
     color:#aaa;
-    font-size:20px;
+    font-size:18px;
     user-select:none;
     touch-action:none;
     cursor:grab;
@@ -146,14 +147,14 @@ h1{
 
 input,select{
     width:100%;
-    min-height:30px;
+    min-height:24px;
     background:#222;
     color:white;
     border:1px solid #2d2d2d;
-    padding:7px 9px;
-    font-size:14px;
+    padding:3px 7px;
+    font-size:13px;
     outline:none;
-    border-radius:9px;
+    border-radius:7px;
 }
 
 input:disabled,
@@ -387,7 +388,7 @@ select option:disabled{
 
 /* smooth card drag */
 .drag-placeholder{
-    min-height:38px;
+    min-height:34px;
     border:2px dashed #d60000;
     border-radius:14px;
     background:rgba(214,0,0,0.12);
@@ -412,12 +413,23 @@ select option:disabled{
 
 
 .drag-placeholder{
-    min-height:38px;
+    min-height:28px;
     border:2px dashed #d60000;
     border-radius:14px;
     background:rgba(214,0,0,0.12);
     transition:all 0.16s ease;
 }
+
+html{
+    touch-action:manipulation;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+}
+
+body{
+    overscroll-behavior:none;
+}
+
 </style>
 </head>
 
@@ -1506,6 +1518,30 @@ function clearBrokenOldState(){
     oldKeys.forEach(key => localStorage.removeItem(key));
 }
 
+
+function preventPageZoom(){
+    document.addEventListener('gesturestart', event => event.preventDefault(), {passive:false});
+    document.addEventListener('gesturechange', event => event.preventDefault(), {passive:false});
+    document.addEventListener('gestureend', event => event.preventDefault(), {passive:false});
+
+    document.addEventListener('wheel', event => {
+        if(event.ctrlKey){
+            event.preventDefault();
+        }
+    }, {passive:false});
+
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', event => {
+        const now = Date.now();
+
+        if(now - lastTouchEnd <= 300){
+            event.preventDefault();
+        }
+
+        lastTouchEnd = now;
+    }, {passive:false});
+}
+
 function bindEvents(){
     const topFinishBtn = document.getElementById('topFinishBtn');
     if(topFinishBtn){
@@ -1557,6 +1593,7 @@ document.getElementById('playersTable').addEventListener('input', event => {
     });
 }
 
+preventPageZoom();
 clearBrokenOldState();
 bindEvents();
 loadState();
