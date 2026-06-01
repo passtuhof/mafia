@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
+<!-- smooth-drag: floating card follows finger -->
 <!-- cards-ui: player list rebuilt as cards -->
 
 <style>
@@ -314,6 +315,27 @@ select:disabled{
     border-color:#666 !important;
 }
 
+
+/* smooth card dragging */
+.data-row{
+    transition:transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+
+.data-row.dragging-source{
+    opacity:0;
+}
+
+.drag-floating-card{
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:5000;
+    pointer-events:none;
+    transform:translate3d(0,0,0);
+    transition:none !important;
+    box-shadow:0 18px 40px rgba(0,0,0,0.55) !important;
+}
+
 </style>
 </head>
 
@@ -379,6 +401,9 @@ let commissionerTargetIndex = null;
 let doctorTargetIndex = null;
 let draggedIndex = null;
 let currentOverIndex = null;
+let dragFloatingCard = null;
+let dragStartOffsetX = 0;
+let dragStartOffsetY = 0;
 
 function makeDefaultPlayers(){
     return Array.from({length:10}, () => ({
@@ -815,44 +840,104 @@ function finishGame(){
     renderScreen();
 }
 
+function animateDragPositions(){
+    const rows = Array.from(document.querySelectorAll('.data-row'));
+
+    rows.forEach((row, index) => {
+        row.style.transform = '';
+
+        if(draggedIndex === null || currentOverIndex === null || index === draggedIndex){
+            return;
+        }
+
+        const rowHeight = row.offsetHeight + 8;
+
+        if(draggedIndex < currentOverIndex){
+            if(index > draggedIndex && index <= currentOverIndex){
+                row.style.transform = `translateY(-${rowHeight}px)`;
+            }
+        }else if(draggedIndex > currentOverIndex){
+            if(index >= currentOverIndex && index < draggedIndex){
+                row.style.transform = `translateY(${rowHeight}px)`;
+            }
+        }
+    });
+}
+
 function startDrag(event, index){
-    if(gameStarted){
-        return;
-    }
+    if(gameStarted) return;
 
     event.preventDefault();
+
     draggedIndex = index;
     currentOverIndex = index;
 
     const row = document.querySelector(`.data-row[data-index="${index}"]`);
-    if(row){
-        row.style.opacity = '0.4';
+    if(!row){
+        return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-    event.currentTarget.onpointermove = moveDrag;
-    event.currentTarget.onpointerup = endDrag;
-    event.currentTarget.onpointercancel = endDrag;
+    const rect = row.getBoundingClientRect();
+
+    dragStartOffsetX = event.clientX - rect.left;
+    dragStartOffsetY = event.clientY - rect.top;
+
+    dragFloatingCard = row.cloneNode(true);
+    dragFloatingCard.classList.add('drag-floating-card');
+    dragFloatingCard.style.width = rect.width + 'px';
+    dragFloatingCard.style.height = rect.height + 'px';
+    dragFloatingCard.style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0)`;
+    document.body.appendChild(dragFloatingCard);
+
+    row.classList.add('dragging-source');
+
+    event.target.setPointerCapture(event.pointerId);
+    event.target.onpointermove = moveDrag;
+    event.target.onpointerup = endDrag;
+    event.target.onpointercancel = endDrag;
 }
 
 function moveDrag(event){
+    if(draggedIndex === null){
+        return;
+    }
+
+    if(dragFloatingCard){
+        const x = event.clientX - dragStartOffsetX;
+        const y = event.clientY - dragStartOffsetY;
+        dragFloatingCard.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+
     const rows = Array.from(document.querySelectorAll('.data-row'));
-    let foundIndex = null;
+    let foundIndex = currentOverIndex;
 
     rows.forEach((row, index) => {
+        if(index === draggedIndex){
+            return;
+        }
+
         const rect = row.getBoundingClientRect();
+        const middle = rect.top + rect.height / 2;
+
         if(event.clientY >= rect.top && event.clientY <= rect.bottom){
-            foundIndex = index;
+            foundIndex = event.clientY < middle ? index : index + 1;
         }
     });
 
-    if(foundIndex !== null){
+    if(foundIndex === null){
+        foundIndex = currentOverIndex;
+    }
+
+    foundIndex = Math.max(0, Math.min(players.length - 1, foundIndex));
+
+    if(foundIndex !== currentOverIndex){
         currentOverIndex = foundIndex;
+        animateDragPositions();
     }
 }
 
 function endDrag(event){
-    const target = event.currentTarget;
+    const target = event.target;
 
     try{
         target.releasePointerCapture(event.pointerId);
@@ -862,7 +947,21 @@ function endDrag(event){
     target.onpointerup = null;
     target.onpointercancel = null;
 
-    if(draggedIndex !== null && currentOverIndex !== null && draggedIndex !== currentOverIndex){
+    document.querySelectorAll('.data-row').forEach(row => {
+        row.classList.remove('dragging-source');
+        row.style.transform = '';
+    });
+
+    if(dragFloatingCard){
+        dragFloatingCard.remove();
+        dragFloatingCard = null;
+    }
+
+    if(
+        draggedIndex !== null &&
+        currentOverIndex !== null &&
+        draggedIndex !== currentOverIndex
+    ){
         const movedPlayer = players.splice(draggedIndex, 1)[0];
         players.splice(currentOverIndex, 0, movedPlayer);
     }
