@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
+<!-- drag-fix-no-placeholder-number: no numbering in placeholder, no instant number change -->
 <!-- compact-number-preview-drag: lower cards + live numbering during drag -->
 <!-- cards-smooth-sort: cards UI + placeholder drag -->
 <!-- history-refresh-fix: day summary persists after reload -->
@@ -410,18 +411,11 @@ select option:disabled{
 
 
 .drag-placeholder{
-    display:grid;
-    grid-template-columns:28px minmax(0,1fr) 138px 28px;
-    align-items:center;
-    gap:7px;
-}
-
-.drag-placeholder-number{
-    width:22px;
-    text-align:center;
-    font-weight:700;
-    font-size:13px;
-    color:white;
+    min-height:38px;
+    border:2px dashed #d60000;
+    border-radius:14px;
+    background:rgba(214,0,0,0.12);
+    transition:all 0.16s ease;
 }
 </style>
 </head>
@@ -1291,10 +1285,6 @@ function updateDragPreviewNumbers(){
 
     slots.forEach((item, index) => {
         if(item.classList.contains('drag-placeholder')){
-            const num = item.querySelector('.drag-placeholder-number');
-            if(num){
-                num.textContent = index + 1;
-            }
             return;
         }
 
@@ -1307,7 +1297,15 @@ function updateDragPreviewNumbers(){
     if(dragFloatingCard && currentOverIndex !== null){
         const floatingNumber = dragFloatingCard.querySelector('.number-cell');
         if(floatingNumber){
-            floatingNumber.textContent = currentOverIndex + 1;
+            let previewNumber = currentOverIndex + 1;
+
+            if(currentOverIndex === draggedIndex){
+                previewNumber = draggedIndex + 1;
+            }else if(currentOverIndex > draggedIndex){
+                previewNumber = currentOverIndex;
+            }
+
+            floatingNumber.textContent = previewNumber;
         }
     }
 }
@@ -1354,11 +1352,10 @@ function startDrag(event, index){
     dragPlaceholder = document.createElement('div');
     dragPlaceholder.className = 'drag-placeholder';
     dragPlaceholder.style.height = rect.height + 'px';
-    dragPlaceholder.innerHTML = '<div class="drag-placeholder-number"></div><div></div><div></div><div></div>';
+    dragPlaceholder.innerHTML = '';
 
     row.parentNode.insertBefore(dragPlaceholder, row);
     row.classList.add('dragging-source');
-    updateDragPreviewNumbers();
 
     handle.setPointerCapture(event.pointerId);
     handle.onpointermove = moveDrag;
@@ -1399,8 +1396,12 @@ function moveDrag(event){
         item.classList.contains('data-row') || item.classList.contains('drag-placeholder')
     );
 
-    currentOverIndex = slots.indexOf(dragPlaceholder);
-    updateDragPreviewNumbers();
+    const newIndex = slots.indexOf(dragPlaceholder);
+
+    if(newIndex !== currentOverIndex){
+        currentOverIndex = newIndex;
+        updateDragPreviewNumbers();
+    }
 }
 
 function endDrag(event){
