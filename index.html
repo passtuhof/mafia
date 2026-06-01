@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
-<!-- compact-cards: lower height, fixed outside numbers, top finish cross -->
-<!-- smooth-drag-placeholder: cards open gap and drop into placeholder -->
-<!-- smooth-drag: floating card follows finger -->
-<!-- cards-ui: player list rebuilt as cards -->
+<!-- cards-smooth-sort: cards UI + placeholder drag -->
+<!-- history-refresh-fix: day summary persists after reload -->
+<!-- columns-fixed: role 150px -->
 
 <style>
 *{
@@ -65,7 +64,7 @@ h1{
     width:100%;
     display:flex;
     flex-direction:column;
-    gap:6px;
+    gap:8px;
 }
 
 .header-row{
@@ -74,20 +73,20 @@ h1{
 
 .player-row{
     display:grid;
-    grid-template-columns:34px minmax(0,1fr) 136px 28px;
+    grid-template-columns:34px minmax(0,1fr) 150px 30px;
     align-items:center;
-    gap:7px;
-    min-height:44px;
-    padding:0;
+    gap:8px;
+    min-height:56px;
+    padding:7px 8px;
     margin-bottom:0;
-    background:transparent;
-    border:none;
-    border-radius:0;
-    box-shadow:none;
+    background:linear-gradient(180deg,#1b1b1b,#141414);
+    border:1px solid #333;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.22);
 }
 
 .cell{
-    min-height:38px;
+    min-height:42px;
     border:none;
     display:flex;
     align-items:center;
@@ -126,7 +125,7 @@ h1{
 }
 
 .drag-handle{
-    height:38px;
+    height:42px;
     width:26px;
     display:flex;
     align-items:center;
@@ -144,14 +143,14 @@ h1{
 
 input,select{
     width:100%;
-    min-height:32px;
+    min-height:34px;
     background:#222;
     color:white;
     border:1px solid #2d2d2d;
-    padding:6px 8px;
+    padding:7px 9px;
     font-size:14px;
     outline:none;
-    border-radius:8px;
+    border-radius:9px;
 }
 
 input:disabled,
@@ -166,7 +165,7 @@ select:disabled{
     display:flex;
     gap:10px;
     margin-top:15px;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
 }
 
 .main-btn{
@@ -177,12 +176,18 @@ select:disabled{
     cursor:pointer;
     background:#d60000;
     color:white;
-    padding:0 18px;
+    padding:0 14px;
+    white-space:nowrap;
 }
 
 .main-btn:disabled{
     background:#555;
     cursor:not-allowed;
+}
+
+select option:disabled{
+    color:#777;
+    background:#2a2a2a;
 }
 
 .small-btn{
@@ -242,6 +247,37 @@ select:disabled{
     color:white !important;
 }
 
+.green-target-highlight .cell:not(.drag-cell){
+    background:#2ecc71 !important;
+    color:#111 !important;
+}
+
+.green-target-highlight input,
+.green-target-highlight select{
+    background:#2ecc71 !important;
+    color:#111 !important;
+}
+
+.dead-player .cell:not(.drag-cell){
+    background:#555 !important;
+    color:white !important;
+}
+
+.dead-player input,
+.dead-player select{
+    background:#555 !important;
+    color:white !important;
+}
+
+.doctor-forbidden .cell:not(.drag-cell){
+    opacity:0.55;
+}
+
+.doctor-forbidden input,
+.doctor-forbidden select{
+    opacity:1;
+}
+
 .modal{
     display:none;
     position:fixed;
@@ -285,7 +321,12 @@ select:disabled{
 .yes-btn{background:#d60000;}
 .no-btn{background:#333;}
 
-/* card layout highlight overrides */
+#finishBtn{
+    display:none !important;
+}
+
+
+/* cards UI */
 .role-highlight{
     background:#e5c100 !important;
     color:#111 !important;
@@ -341,14 +382,12 @@ select:disabled{
     border-color:#666 !important;
 }
 
-
-
+/* smooth card drag */
 .drag-placeholder{
-    min-height:44px;
+    min-height:56px;
     border:2px dashed #d60000;
     border-radius:14px;
     background:rgba(214,0,0,0.12);
-    margin:0;
     transition:all 0.16s ease;
 }
 
@@ -368,56 +407,6 @@ select:disabled{
     opacity:0.96;
 }
 
-
-#finishBtn{display:none !important;}
-
-.data-row .cell:not(.number-cell):not(.drag-cell){
-    background:linear-gradient(180deg,#1b1b1b,#141414);
-    border:1px solid #333;
-}
-
-.data-row .cell:nth-child(2){
-    border-radius:12px 0 0 12px;
-    border-right:none;
-    padding-left:7px;
-}
-
-.data-row .cell:nth-child(3){
-    border-radius:0 12px 12px 0;
-    padding-right:7px;
-}
-
-
-
-/* compact cards: keep number outside visual card */
-.role-highlight .number-cell,
-.target-highlight .number-cell,
-.green-target-highlight .number-cell{
-    background:#111 !important;
-    color:white !important;
-    border-color:#444 !important;
-}
-
-.role-highlight .cell:not(.number-cell):not(.drag-cell){
-    background:#e5c100 !important;
-    color:#111 !important;
-    border-color:#e5c100 !important;
-}
-
-.target-highlight .cell:not(.number-cell):not(.drag-cell){
-    background:#d60000 !important;
-    color:white !important;
-    border-color:#d60000 !important;
-}
-
-.green-target-highlight .cell:not(.number-cell):not(.drag-cell){
-    background:#2ecc71 !important;
-    color:#111 !important;
-    border-color:#2ecc71 !important;
-}
-
-
-.drag-floating-card .number-cell{visibility:hidden;}
 </style>
 </head>
 
@@ -472,19 +461,25 @@ const STORAGE_KEY = 'mafia_app_state_stable_v1';
 
 const ROLE_CIVILIAN = '👤 Мирный';
 const ROLE_MAFIA = '🔫 Мафия';
-const ROLE_COMMISSIONER = '⭐ Комиссар';
-const ROLE_DOCTOR = '🚑 Доктор';
+const ROLE_COMMISSIONER = '🔍 Комиссар';
+const ROLE_DOCTOR = '💉 Доктор';
 const ROLE_MANIAC = '🔪 Маньяк';
 
 let players = [];
 let gameStarted = false;
 let gameStage = 'intro';
+
 let activeWakeRole = null;
 let selectedTargetIndex = null;
+let nightSkipped = false;
+let votingTargetIndex = null;
+
 let mafiaTargetIndex = null;
 let maniacTargetIndex = null;
 let commissionerTargetIndex = null;
 let doctorTargetIndex = null;
+let previousDoctorTargetIndex = null;
+
 let draggedIndex = null;
 let currentOverIndex = null;
 let dragFloatingCard = null;
@@ -500,6 +495,12 @@ function makeDefaultPlayers(){
     }));
 }
 
+function normalizeRole(role){
+    if(role === '⭐ Комиссар') return ROLE_COMMISSIONER;
+    if(role === '🚑 Доктор') return ROLE_DOCTOR;
+    return role;
+}
+
 function normalizePlayers(list){
     if(!Array.isArray(list) || list.length === 0){
         return makeDefaultPlayers();
@@ -507,7 +508,7 @@ function normalizePlayers(list){
 
     return list.map(player => ({
         name: typeof player.name === 'string' ? player.name : '',
-        role: typeof player.role === 'string' ? player.role : ROLE_CIVILIAN,
+        role: normalizeRole(typeof player.role === 'string' ? player.role : ROLE_CIVILIAN),
         alive: player.alive !== false
     }));
 }
@@ -520,10 +521,12 @@ function saveState(){
             gameStage,
             activeWakeRole,
             selectedTargetIndex,
+            votingTargetIndex,
             mafiaTargetIndex,
             maniacTargetIndex,
             commissionerTargetIndex,
-            doctorTargetIndex
+            doctorTargetIndex,
+            previousDoctorTargetIndex
         }));
     }catch(error){}
 }
@@ -531,32 +534,44 @@ function saveState(){
 function loadState(){
     try{
         const saved = localStorage.getItem(STORAGE_KEY);
+
         if(!saved){
             players = makeDefaultPlayers();
             return;
         }
 
         const state = JSON.parse(saved);
+
         players = normalizePlayers(state.players);
         gameStarted = Boolean(state.gameStarted);
         gameStage = state.gameStage || 'intro';
-        activeWakeRole = state.activeWakeRole || null;
+        activeWakeRole = normalizeRole(state.activeWakeRole || null);
         selectedTargetIndex = Number.isInteger(state.selectedTargetIndex) ? state.selectedTargetIndex : null;
+        nightSkipped = Boolean(state.nightSkipped);
+        votingTargetIndex = Number.isInteger(state.votingTargetIndex) ? state.votingTargetIndex : null;
+        votingTargetIndex = Number.isInteger(state.votingTargetIndex) ? state.votingTargetIndex : null;
         mafiaTargetIndex = Number.isInteger(state.mafiaTargetIndex) ? state.mafiaTargetIndex : null;
         maniacTargetIndex = Number.isInteger(state.maniacTargetIndex) ? state.maniacTargetIndex : null;
         commissionerTargetIndex = Number.isInteger(state.commissionerTargetIndex) ? state.commissionerTargetIndex : null;
         doctorTargetIndex = Number.isInteger(state.doctorTargetIndex) ? state.doctorTargetIndex : null;
+        previousDoctorTargetIndex = Number.isInteger(state.previousDoctorTargetIndex) ? state.previousDoctorTargetIndex : null;
     }catch(error){
         players = makeDefaultPlayers();
         gameStarted = false;
         gameStage = 'intro';
         activeWakeRole = null;
         selectedTargetIndex = null;
+        votingTargetIndex = null;
         mafiaTargetIndex = null;
         maniacTargetIndex = null;
         commissionerTargetIndex = null;
         doctorTargetIndex = null;
+        previousDoctorTargetIndex = null;
     }
+}
+
+function getPlayerNameByIndex(index){
+    return players[index] ? escapeHtml(players[index].name) : '';
 }
 
 function escapeHtml(value){
@@ -567,7 +582,7 @@ function escapeHtml(value){
         .replaceAll('>','&gt;');
 }
 
-function getRoleOptions(selectedRole){
+function getRoleOptions(selectedRole, playerIndex){
     const roles = [
         ROLE_CIVILIAN,
         ROLE_MAFIA,
@@ -576,11 +591,21 @@ function getRoleOptions(selectedRole){
         ROLE_MANIAC
     ];
 
-    return roles.map(role => `<option value="${escapeHtml(role)}" ${role === selectedRole ? 'selected' : ''}>${escapeHtml(role)}</option>`).join('');
-}
+    const commissionerTakenByOther = players.some((player, index) =>
+        index !== playerIndex && player.role === ROLE_COMMISSIONER
+    );
 
-function getRoleName(role){
-    return role.replace(/^.+?\s/, '');
+    const doctorTakenByOther = players.some((player, index) =>
+        index !== playerIndex && player.role === ROLE_DOCTOR
+    );
+
+    return roles.map(role => {
+        const shouldDisable =
+            (role === ROLE_COMMISSIONER && commissionerTakenByOther && selectedRole !== ROLE_COMMISSIONER) ||
+            (role === ROLE_DOCTOR && doctorTakenByOther && selectedRole !== ROLE_DOCTOR);
+
+        return `<option value="${escapeHtml(role)}" ${role === selectedRole ? 'selected' : ''} ${shouldDisable ? 'disabled' : ''}>${escapeHtml(role)}</option>`;
+    }).join('');
 }
 
 function renderTable(){
@@ -593,20 +618,27 @@ function renderTable(){
         row.dataset.index = String(index);
 
         const isActiveRole = gameStage === 'night' && activeWakeRole && player.role === activeWakeRole;
-        const isTarget = gameStage === 'night' && selectedTargetIndex === index;
+        const isTarget = (gameStage === 'night' && selectedTargetIndex === index) || (gameStage === 'voting' && votingTargetIndex === index);
+        const isDead = player.alive === false;
+        const isDoctorForbidden = gameStage === 'night' && activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index;
 
-        if(isActiveRole){
-            row.classList.add('role-highlight');
-        }
+        if(isDoctorForbidden) row.classList.add('doctor-forbidden');
+        if(isDead) row.classList.add('dead-player');
+        if(isActiveRole) row.classList.add('role-highlight');
 
         if(isTarget){
-            row.classList.add('target-highlight');
+            if(activeWakeRole === ROLE_COMMISSIONER || activeWakeRole === ROLE_DOCTOR){
+                row.classList.add('green-target-highlight');
+            }else{
+                row.classList.add('target-highlight');
+            }
         }
 
         row.innerHTML = `
-            <div class="cell number-cell" data-click-target="${index}">${index + 1}</div>
+            <div class="cell number-cell" data-click-target="${index}">${player.alive === false ? '☠️' : index + 1}</div>
             <div class="cell" data-click-target="${index}">
                 <input
+                    
                     type="text"
                     value="${escapeHtml(player.name)}"
                     ${gameStarted ? 'disabled' : ''}
@@ -614,8 +646,8 @@ function renderTable(){
                 >
             </div>
             <div class="cell" data-click-target="${index}">
-                <select ${gameStarted ? 'disabled' : ''} data-role-index="${index}">
-                    ${getRoleOptions(player.role)}
+                <select ${(gameStarted || !player.name.trim()) ? 'disabled' : ''} data-role-index="${index}">
+                    ${getRoleOptions(player.role, index)}
                 </select>
             </div>
             <div class="drag-cell">
@@ -627,6 +659,7 @@ function renderTable(){
     });
 
     updateChoiceButton();
+    updateStartButton();
 }
 
 function renderScreen(){
@@ -635,35 +668,97 @@ function renderScreen(){
     const gameButtons = document.getElementById('gameButtons');
     const wakeBlock = document.getElementById('wakeBlock');
     const choiceBtn = document.getElementById('choiceBtn');
+    const wakeTitle = document.getElementById('wakeTitle');
+    const actionText = document.getElementById('actionText');
 
-    if(!gameStarted){
-        phaseTitle.textContent = 'Знакомство';
-        startButtons.style.display = 'flex';
-        gameButtons.style.display = 'none';
-        wakeBlock.style.display = 'none';
-    }else if(gameStage === 'day'){
-        phaseTitle.textContent = 'Сейчас день';
-        startButtons.style.display = 'none';
-        gameButtons.style.display = 'flex';
+    try{
+        if(!gameStarted){
+            phaseTitle.textContent = 'Знакомство';
+            startButtons.style.display = 'flex';
+            gameButtons.style.display = 'none';
+            wakeBlock.style.display = 'none';
 
-        choiceBtn.textContent = 'Ночь';
-        choiceBtn.disabled = false;
-        choiceBtn.onclick = startNight;
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
+        }
+        else if(gameStage === 'day'){
+            phaseTitle.textContent = 'Сейчас день';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
 
-        const hasHistory = mafiaTargetIndex !== null || maniacTargetIndex !== null || commissionerTargetIndex !== null || doctorTargetIndex !== null;
-        wakeBlock.style.display = hasHistory ? 'block' : 'none';
-        document.getElementById('wakeTitle').textContent = '';
-        document.getElementById('actionText').textContent = '';
-        renderChoiceHistory();
-    }else if(gameStage === 'night'){
-        phaseTitle.textContent = 'Сейчас ночь';
-        startButtons.style.display = 'none';
-        gameButtons.style.display = 'flex';
-        wakeBlock.style.display = 'block';
+            choiceBtn.textContent = 'Ночь';
+            choiceBtn.disabled = false;
+            choiceBtn.onclick = startNight;
 
-        choiceBtn.textContent = 'Выбор';
-        choiceBtn.onclick = confirmNightChoice;
-        renderWakeText();
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(true);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
+
+            const hasHistory =
+                nightSkipped ||
+                mafiaTargetIndex !== null ||
+                maniacTargetIndex !== null ||
+                commissionerTargetIndex !== null ||
+                doctorTargetIndex !== null;
+
+            wakeBlock.style.display = hasHistory ? 'block' : 'none';
+
+            if(wakeTitle){
+                wakeTitle.textContent = nightSkipped ? 'Ночь пропущена…' : '';
+            }
+
+            if(actionText){
+                actionText.textContent = '';
+            }
+
+            safeRenderChoiceHistory();
+        }
+        else if(gameStage === 'voting'){
+            phaseTitle.textContent = 'Сейчас день';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
+
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(true);
+            if(typeof ensureNightSkipButton === 'function') ensureNightSkipButton(false);
+
+            choiceBtn.textContent = 'Казнить';
+            choiceBtn.disabled = votingTargetIndex === null;
+            choiceBtn.onclick = confirmVotingChoice;
+
+            wakeBlock.style.display = 'block';
+
+            if(wakeTitle) wakeTitle.textContent = 'Голосование…';
+            if(actionText) actionText.textContent = 'Выбери кого казнить (нажмите на игрока)';
+
+            const historyEl = document.getElementById('choiceHistory');
+            if(historyEl) historyEl.innerHTML = '';
+        }
+        else if(gameStage === 'night'){
+            phaseTitle.textContent = 'Сейчас ночь';
+            startButtons.style.display = 'none';
+            gameButtons.style.display = 'flex';
+            wakeBlock.style.display = 'block';
+
+            if(typeof ensureVoteButton === 'function') ensureVoteButton(false);
+            if(typeof ensureVotingNightButton === 'function') ensureVotingNightButton(false);
+            if(typeof ensureNightSkipButton === 'function'){
+                ensureNightSkipButton(
+                    mafiaTargetIndex === null &&
+                    maniacTargetIndex === null &&
+                    commissionerTargetIndex === null &&
+                    doctorTargetIndex === null
+                );
+            }
+
+            choiceBtn.textContent = 'Выбор';
+            choiceBtn.onclick = confirmNightChoice;
+
+            renderWakeText();
+        }
+    }catch(error){
+        console.error(error);
     }
 
     renderTable();
@@ -691,26 +786,105 @@ function renderWakeText(){
         actionText.textContent = '';
     }
 
-    renderChoiceHistory();
+    safeRenderChoiceHistory();
+}
+
+function safeRenderChoiceHistory(){
+    try{
+        renderChoiceHistory();
+    }catch(error){
+        const historyEl = document.getElementById('choiceHistory');
+        if(historyEl){
+            historyEl.innerHTML = '';
+        }
+    }
 }
 
 function renderChoiceHistory(){
     const history = [];
+    const isDaySummary = gameStarted && gameStage === 'day';
 
-    if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
-        history.push(`— Мафия выбрала «${escapeHtml(players[mafiaTargetIndex].name)}»`);
-    }
+    if(isDaySummary){
+        const mafiaKilled = mafiaTargetIndex !== null;
+        const maniacKilled = maniacTargetIndex !== null;
 
-    if(maniacTargetIndex !== null && players[maniacTargetIndex]){
-        history.push(`— Маньяк выбрал «${escapeHtml(players[maniacTargetIndex].name)}»`);
-    }
+        const mafiaBlocked = mafiaKilled && mafiaTargetIndex === doctorTargetIndex;
+        const maniacBlocked = maniacKilled && maniacTargetIndex === doctorTargetIndex;
 
-    if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
-        history.push(`— Комиссар выбрал «${escapeHtml(players[commissionerTargetIndex].name)}»`);
-    }
+        if(
+            mafiaKilled && maniacKilled &&
+            mafiaTargetIndex === maniacTargetIndex &&
+            !mafiaBlocked && !maniacBlocked
+        ){
+            const name = getPlayerNameByIndex(mafiaTargetIndex);
+            history.push(`— Мафия и Маньяк <span style='color:#d60000'>убили «${name}»</span>`);
+        }
+        else if(
+            mafiaKilled && maniacKilled &&
+            mafiaBlocked && maniacBlocked
+        ){
+            history.push(`— Мафия и Маньяк <span style='color:#888'>не убили</span>`);
+        }
+        else{
+            if(mafiaKilled){
+                const name = getPlayerNameByIndex(mafiaTargetIndex);
 
-    if(doctorTargetIndex !== null && players[doctorTargetIndex]){
-        history.push(`— Доктор выбрал «${escapeHtml(players[doctorTargetIndex].name)}»`);
+                history.push(
+                    mafiaBlocked
+                    ? `— Мафия <span style='color:#888'>не убила</span>`
+                    : `— Мафия <span style='color:#d60000'>убила «${name}»</span>`
+                );
+            }
+
+            if(maniacKilled){
+                const name = getPlayerNameByIndex(maniacTargetIndex);
+
+                history.push(
+                    maniacBlocked
+                    ? `— Маньяк <span style='color:#888'>не убил</span>`
+                    : `— Маньяк <span style='color:#d60000'>убил «${name}»</span>`
+                );
+            }
+        }
+
+        if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
+            const checkedRole = players[commissionerTargetIndex].role;
+            const isActiveRole = checkedRole === ROLE_MAFIA || checkedRole === ROLE_MANIAC;
+
+            history.push(
+                isActiveRole
+                ? `— Комиссар проверил <span style='color:#2ecc71'>активную роль</span>`
+                : `— Комиссар проверил <span style='color:#888'>неактивную роль</span>`
+            );
+        }
+
+        if(doctorTargetIndex !== null && players[doctorTargetIndex]){
+            const doctorSavedSomeone =
+                doctorTargetIndex === mafiaTargetIndex ||
+                doctorTargetIndex === maniacTargetIndex;
+
+            history.push(
+                doctorSavedSomeone
+                ? `— Доктор <span style='color:#2ecc71'>вылечил игрока</span>`
+                : `— Доктор <span style='color:#888'>не вылечил</span>`
+            );
+        }
+    }else{
+        if(mafiaTargetIndex !== null && players[mafiaTargetIndex]){
+            history.push(`— Мафия выбрала «${getPlayerNameByIndex(mafiaTargetIndex)}»`);
+        }
+
+        if(maniacTargetIndex !== null && players[maniacTargetIndex]){
+            history.push(`— Маньяк выбрал «${getPlayerNameByIndex(maniacTargetIndex)}»`);
+        }
+
+        if(commissionerTargetIndex !== null && players[commissionerTargetIndex]){
+            history.push(`— Комиссар выбрал «${getPlayerNameByIndex(commissionerTargetIndex)}»`);
+        }
+
+        if(doctorTargetIndex !== null && players[doctorTargetIndex]){
+            history.push(`— Доктор выбрал «${getPlayerNameByIndex(doctorTargetIndex)}»`);
+        }
     }
 
     document.getElementById('choiceHistory').innerHTML = history.join('<br>');
@@ -718,33 +892,62 @@ function renderChoiceHistory(){
 
 function updateChoiceButton(){
     const choiceBtn = document.getElementById('choiceBtn');
-    if(!choiceBtn){
-        return;
-    }
+    if(!choiceBtn) return;
 
     if(gameStarted && gameStage === 'night'){
         choiceBtn.disabled = selectedTargetIndex === null;
     }
+
+    if(gameStarted && gameStage === 'voting'){
+        choiceBtn.disabled = votingTargetIndex === null;
+    }
+}
+
+function hasRequiredStartRoles(){
+    return hasRole(ROLE_MAFIA) && hasRole(ROLE_COMMISSIONER) && hasRole(ROLE_DOCTOR);
+}
+
+function updateStartButton(){
+    const startBtn = document.getElementById('startBtn');
+    if(!startBtn) return;
+
+    if(gameStarted){
+        startBtn.disabled = true;
+        return;
+    }
+
+    startBtn.disabled = !hasRequiredStartRoles();
 }
 
 function updateName(index, value){
     if(players[index]){
         players[index].name = value;
+
+        const roleSelect = document.querySelector(`[data-role-index="${index}"]`);
+
+        if(roleSelect && !gameStarted){
+            roleSelect.disabled = value.trim() === '';
+
+            if(value.trim() === ''){
+                players[index].role = ROLE_CIVILIAN;
+                roleSelect.value = ROLE_CIVILIAN;
+            }
+        }
+
+        updateStartButton();
         saveState();
     }
 }
 
 function updateRole(index, value){
     if(players[index]){
-        players[index].role = value;
-        saveState();
+        players[index].role = normalizeRole(value);
+        renderScreen();
     }
 }
 
 function addRow(){
-    if(gameStarted){
-        return;
-    }
+    if(gameStarted) return;
 
     players.push({
         name:'',
@@ -756,15 +959,18 @@ function addRow(){
 }
 
 function removeRow(){
-    if(gameStarted || players.length <= 1){
-        return;
-    }
+    if(gameStarted || players.length <= 1) return;
 
     players.pop();
     renderScreen();
 }
 
 function startDay(){
+    if(!hasRequiredStartRoles()){
+        updateStartButton();
+        return;
+    }
+
     const filledPlayers = players.filter(player => player.name.trim() !== '');
 
     if(filledPlayers.length > 0){
@@ -775,45 +981,211 @@ function startDay(){
     gameStage = 'day';
     activeWakeRole = null;
     selectedTargetIndex = null;
+    votingTargetIndex = null;
+    votingTargetIndex = null;
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
+    previousDoctorTargetIndex = null;
 
     renderScreen();
 }
+
+function getNextAliveRole(afterRole){
+    const order = [ROLE_MAFIA, ROLE_MANIAC, ROLE_COMMISSIONER, ROLE_DOCTOR];
+
+    let startIndex = -1;
+
+    if(afterRole !== null){
+        startIndex = order.indexOf(afterRole);
+    }
+
+    for(let i = startIndex + 1; i < order.length; i++){
+        const role = order[i];
+
+        if(hasAliveRole(role)){
+            return role;
+        }
+    }
+
+    return null;
+}
+
+
+function ensureVoteButton(shouldShow){
+    let voteBtn = document.getElementById('voteBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!voteBtn){
+            voteBtn = document.createElement('button');
+            voteBtn.className = 'main-btn choice-btn';
+            voteBtn.id = 'voteBtn';
+            voteBtn.textContent = 'Голос';
+            voteBtn.addEventListener('click', startVoting);
+            choiceBtn.insertAdjacentElement('afterend', voteBtn);
+        }
+
+        voteBtn.style.display = '';
+    }else if(voteBtn){
+        voteBtn.style.display = 'none';
+    }
+}
+
+function ensureVotingNightButton(shouldShow){
+    let votingNightBtn = document.getElementById('votingNightBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!votingNightBtn){
+            votingNightBtn = document.createElement('button');
+            votingNightBtn.className = 'main-btn choice-btn';
+            votingNightBtn.id = 'votingNightBtn';
+            votingNightBtn.textContent = 'Ночь';
+            votingNightBtn.addEventListener('click', startNight);
+            choiceBtn.insertAdjacentElement('afterend', votingNightBtn);
+        }
+
+        votingNightBtn.style.display = '';
+        votingNightBtn.disabled = false;
+    }else if(votingNightBtn){
+        votingNightBtn.style.display = 'none';
+    }
+}
+
+
+function startVoting(){
+    gameStage = 'voting';
+    votingTargetIndex = null;
+    selectedTargetIndex = null;
+    renderScreen();
+}
+
+function confirmVotingChoice(){
+    if(votingTargetIndex === null){
+        return;
+    }
+
+    if(players[votingTargetIndex]){
+        players[votingTargetIndex].alive = false;
+    }
+
+    votingTargetIndex = null;
+    startNight();
+}
+
+
+
+function ensureNightSkipButton(shouldShow){
+    let daySkipBtn = document.getElementById('daySkipBtn');
+    const choiceBtn = document.getElementById('choiceBtn');
+
+    if(shouldShow){
+        if(!daySkipBtn){
+            daySkipBtn = document.createElement('button');
+            daySkipBtn.className = 'main-btn choice-btn';
+            daySkipBtn.id = 'daySkipBtn';
+            daySkipBtn.textContent = 'День';
+            daySkipBtn.addEventListener('click', skipNightToDay);
+            choiceBtn.insertAdjacentElement('afterend', daySkipBtn);
+        }
+
+        daySkipBtn.style.display = '';
+        daySkipBtn.disabled = false;
+    }else if(daySkipBtn){
+        daySkipBtn.style.display = 'none';
+    }
+}
+
+function skipNightToDay(){
+    nightSkipped = true;
+    activeWakeRole = null;
+    selectedTargetIndex = null;
+    gameStage = 'day';
+    renderScreen();
+}
+
 
 function startNight(){
     gameStage = 'night';
-    activeWakeRole = ROLE_MAFIA;
+    nightSkipped = false;
     selectedTargetIndex = null;
+    votingTargetIndex = null;
+    activeWakeRole = null;
+
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
 
-    renderScreen();
+    const nextRole = getNextAliveRole(null);
+
+    if(nextRole){
+        startRoleWake(nextRole);
+    }else{
+        startMorning();
+    }
 }
 
-function startManiacWake(){
-    activeWakeRole = ROLE_MANIAC;
+function startRoleWake(role){
+    activeWakeRole = role;
     selectedTargetIndex = null;
     renderScreen();
 }
 
-function startCommissionerWake(){
-    activeWakeRole = ROLE_COMMISSIONER;
-    selectedTargetIndex = null;
-    renderScreen();
+function confirmNightChoice(){
+    if(selectedTargetIndex === null) return;
+
+    if(activeWakeRole === ROLE_MAFIA){
+        mafiaTargetIndex = selectedTargetIndex;
+    }
+
+    if(activeWakeRole === ROLE_MANIAC){
+        maniacTargetIndex = selectedTargetIndex;
+    }
+
+    if(activeWakeRole === ROLE_COMMISSIONER){
+        commissionerTargetIndex = selectedTargetIndex;
+    }
+
+    if(activeWakeRole === ROLE_DOCTOR){
+        doctorTargetIndex = selectedTargetIndex;
+        previousDoctorTargetIndex = selectedTargetIndex;
+    }
+
+    const currentRole = activeWakeRole;
+    const nextRole = getNextAliveRole(currentRole);
+
+    if(nextRole){
+        startRoleWake(nextRole);
+    }else{
+        startMorning();
+    }
 }
 
-function startDoctorWake(){
-    activeWakeRole = ROLE_DOCTOR;
-    selectedTargetIndex = null;
-    renderScreen();
+function applyNightResults(){
+    const killedIndexes = [];
+
+    if(mafiaTargetIndex !== null && mafiaTargetIndex !== doctorTargetIndex){
+        killedIndexes.push(mafiaTargetIndex);
+    }
+
+    if(maniacTargetIndex !== null && maniacTargetIndex !== doctorTargetIndex){
+        killedIndexes.push(maniacTargetIndex);
+    }
+
+    [...new Set(killedIndexes)].forEach(index => {
+        if(players[index]){
+            players[index].alive = false;
+        }
+    });
 }
 
 function startMorning(){
+    applyNightResults();
+    nightSkipped = false;
+
     gameStage = 'day';
     activeWakeRole = null;
     selectedTargetIndex = null;
@@ -821,16 +1193,22 @@ function startMorning(){
 }
 
 function choosePlayer(index){
-    if(gameStage !== 'night' || !activeWakeRole){
-        return;
-    }
-
     const player = players[index];
-    if(!player){
+    if(!player) return;
+
+    if(gameStage === 'voting'){
+        if(player.alive === false){
+            return;
+        }
+
+        votingTargetIndex = index;
+        renderScreen();
         return;
     }
 
-    if(player.role === activeWakeRole){
+    if(gameStage !== 'night' || !activeWakeRole) return;
+
+    if(player.role === activeWakeRole && activeWakeRole !== ROLE_DOCTOR){
         return;
     }
 
@@ -838,65 +1216,20 @@ function choosePlayer(index){
         return;
     }
 
+    if(activeWakeRole === ROLE_DOCTOR && previousDoctorTargetIndex === index){
+        return;
+    }
+
     selectedTargetIndex = index;
     renderScreen();
 }
 
-function confirmNightChoice(){
-    if(selectedTargetIndex === null){
-        return;
-    }
-
-    if(activeWakeRole === ROLE_MAFIA){
-        mafiaTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_MANIAC)){
-            startManiacWake();
-        }else if(hasRole(ROLE_COMMISSIONER)){
-            startCommissionerWake();
-        }else if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
-        return;
-    }
-
-    if(activeWakeRole === ROLE_MANIAC){
-        maniacTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_COMMISSIONER)){
-            startCommissionerWake();
-        }else if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
-        return;
-    }
-
-    if(activeWakeRole === ROLE_COMMISSIONER){
-        commissionerTargetIndex = selectedTargetIndex;
-
-        if(hasRole(ROLE_DOCTOR)){
-            startDoctorWake();
-        }else{
-            startMorning();
-        }
-
-        return;
-    }
-
-    if(activeWakeRole === ROLE_DOCTOR){
-        doctorTargetIndex = selectedTargetIndex;
-        startMorning();
-    }
-}
-
 function hasRole(role){
     return players.some(player => player.role === role);
+}
+
+function hasAliveRole(role){
+    return players.some(player => player.role === role && player.alive !== false);
 }
 
 function openFinishModal(){
@@ -912,10 +1245,12 @@ function finishGame(){
     gameStage = 'intro';
     activeWakeRole = null;
     selectedTargetIndex = null;
+    votingTargetIndex = null;
     mafiaTargetIndex = null;
     maniacTargetIndex = null;
     commissionerTargetIndex = null;
     doctorTargetIndex = null;
+    previousDoctorTargetIndex = null;
 
     players = players.map(player => ({
         name:player.name,
@@ -926,8 +1261,6 @@ function finishGame(){
     closeFinishModal();
     renderScreen();
 }
-
-
 
 function startDrag(event, index){
     if(gameStarted) return;
@@ -998,11 +1331,11 @@ function moveDrag(event){
         table.appendChild(dragPlaceholder);
     }
 
-    const allSlots = Array.from(table.children).filter(item =>
+    const slots = Array.from(table.children).filter(item =>
         item.classList.contains('data-row') || item.classList.contains('drag-placeholder')
     );
 
-    currentOverIndex = allSlots.indexOf(dragPlaceholder);
+    currentOverIndex = slots.indexOf(dragPlaceholder);
 }
 
 function endDrag(event){
@@ -1027,10 +1360,7 @@ function endDrag(event){
         dragFloatingCard = null;
     }
 
-    if(
-        draggedIndex !== null &&
-        currentOverIndex !== null
-    ){
+    if(draggedIndex !== null && currentOverIndex !== null){
         let targetIndex = currentOverIndex;
 
         if(targetIndex > draggedIndex){
@@ -1078,8 +1408,10 @@ function bindEvents(){
     document.getElementById('finishYesBtn').addEventListener('click', finishGame);
     document.getElementById('finishNoBtn').addEventListener('click', closeFinishModal);
 
-    document.getElementById('playersTable').addEventListener('input', event => {
+    
+document.getElementById('playersTable').addEventListener('input', event => {
         const index = event.target.dataset.nameIndex;
+
         if(index !== undefined){
             updateName(Number(index), event.target.value);
         }
@@ -1087,6 +1419,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('change', event => {
         const index = event.target.dataset.roleIndex;
+
         if(index !== undefined){
             updateRole(Number(index), event.target.value);
         }
@@ -1094,6 +1427,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('click', event => {
         const cell = event.target.closest('[data-click-target]');
+
         if(!cell){
             return;
         }
@@ -1103,6 +1437,7 @@ function bindEvents(){
 
     document.getElementById('playersTable').addEventListener('pointerdown', event => {
         const handle = event.target.closest('[data-drag-index]');
+
         if(!handle){
             return;
         }
@@ -1115,6 +1450,7 @@ clearBrokenOldState();
 bindEvents();
 loadState();
 renderScreen();
+
 </script>
 
 </body>
