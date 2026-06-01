@@ -494,6 +494,7 @@ let draggedIndex = null;
 let currentOverIndex = null;
 let dragFloatingCard = null;
 let dragPlaceholder = null;
+let dragMoved = false;
 let dragStartOffsetX = 0;
 let dragStartOffsetY = 0;
 
@@ -1274,6 +1275,10 @@ function finishGame(){
 
 
 function updateDragPreviewNumbers(){
+    if(!dragMoved){
+        return;
+    }
+
     const table = document.getElementById('playersTable');
     if(!table){
         return;
@@ -1336,6 +1341,7 @@ function startDrag(event, index){
 
     draggedIndex = index;
     currentOverIndex = index;
+    dragMoved = false;
 
     const rect = row.getBoundingClientRect();
 
@@ -1371,6 +1377,17 @@ function moveDrag(event){
     const x = event.clientX - dragStartOffsetX;
     const y = event.clientY - dragStartOffsetY;
     dragFloatingCard.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+    if(!dragMoved){
+        const dx = Math.abs(x);
+        const dy = Math.abs(y);
+
+        if(dx < 8 && dy < 8){
+            return;
+        }
+
+        dragMoved = true;
+    }
 
     const table = document.getElementById('playersTable');
     const rows = Array.from(table.querySelectorAll('.data-row:not(.dragging-source)'));
@@ -1448,6 +1465,7 @@ function endDrag(event){
 
     draggedIndex = null;
     currentOverIndex = null;
+    dragMoved = false;
     restoreRealNumbers();
 
     renderScreen();
