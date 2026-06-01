@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
+<!-- drag-number-fix: numbers update only after real card shift -->
 <!-- drag-fix-no-placeholder-number: no numbering in placeholder, no instant number change -->
 <!-- compact-number-preview-drag: lower cards + live numbering during drag -->
 <!-- cards-smooth-sort: cards UI + placeholder drag -->
@@ -1286,8 +1287,23 @@ function updateDragPreviewNumbers(){
         return;
     }
 
+    if(currentOverIndex === draggedIndex){
+        restoreRealNumbers();
+
+        if(dragFloatingCard){
+            const floatingNumber = dragFloatingCard.querySelector('.number-cell');
+            if(floatingNumber){
+                const player = players[draggedIndex];
+                floatingNumber.textContent = player && player.alive === false ? '☠️' : draggedIndex + 1;
+            }
+        }
+
+        return;
+    }
+
     const slots = Array.from(table.children).filter(item =>
-        item.classList.contains('data-row') || item.classList.contains('drag-placeholder')
+        item.classList.contains('drag-placeholder') ||
+        (item.classList.contains('data-row') && !item.classList.contains('dragging-source'))
     );
 
     slots.forEach((item, index) => {
@@ -1296,21 +1312,18 @@ function updateDragPreviewNumbers(){
         }
 
         const numCell = item.querySelector('.number-cell');
-        if(numCell && !item.classList.contains('dead-player')){
-            numCell.textContent = index + 1;
+        const rowIndex = Number(item.dataset.index);
+        const player = players[rowIndex];
+
+        if(numCell && player){
+            numCell.textContent = player.alive === false ? '☠️' : index + 1;
         }
     });
 
     if(dragFloatingCard && currentOverIndex !== null){
         const floatingNumber = dragFloatingCard.querySelector('.number-cell');
         if(floatingNumber){
-            let previewNumber = currentOverIndex + 1;
-
-            if(currentOverIndex > draggedIndex){
-                previewNumber = currentOverIndex;
-            }
-
-            floatingNumber.textContent = previewNumber;
+            floatingNumber.textContent = currentOverIndex + 1;
         }
     }
 }
@@ -1422,10 +1435,12 @@ function moveDrag(event){
     }
 
     const slots = Array.from(table.children).filter(item =>
-        item.classList.contains('data-row') || item.classList.contains('drag-placeholder')
+        item.classList.contains('drag-placeholder') ||
+        (item.classList.contains('data-row') && !item.classList.contains('dragging-source'))
     );
 
     currentOverIndex = slots.indexOf(dragPlaceholder);
+
     updateDragPreviewNumbers();
 }
 
@@ -1460,10 +1475,6 @@ function endDrag(event){
 
     if(draggedIndex !== null && currentOverIndex !== null){
         let targetIndex = currentOverIndex;
-
-        if(targetIndex > draggedIndex){
-            targetIndex -= 1;
-        }
 
         targetIndex = Math.max(0, Math.min(players.length - 1, targetIndex));
 
