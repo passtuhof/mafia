@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мафия</title>
+<!-- compact-number-preview-drag: lower cards + live numbering during drag -->
 <!-- cards-smooth-sort: cards UI + placeholder drag -->
 <!-- history-refresh-fix: day summary persists after reload -->
 <!-- columns-fixed: role 150px -->
@@ -73,10 +74,10 @@ h1{
 
 .player-row{
     display:grid;
-    grid-template-columns:34px minmax(0,1fr) 150px 30px;
+    grid-template-columns:28px minmax(0,1fr) 138px 28px;
     align-items:center;
     gap:8px;
-    min-height:44px;
+    min-height:38px;
     padding:7px 8px;
     margin-bottom:0;
     background:linear-gradient(180deg,#1b1b1b,#141414);
@@ -86,7 +87,7 @@ h1{
 }
 
 .cell{
-    min-height:28px;
+    min-height:26px;
     border:none;
     display:flex;
     align-items:center;
@@ -102,7 +103,7 @@ h1{
 }
 
 .number-cell{
-    width:24px;
+    width:22px;
     height:auto;
     justify-content:center;
     text-align:center;
@@ -111,7 +112,7 @@ h1{
     background:transparent;
     color:white;
     font-weight:700;
-    font-size:14px;
+    font-size:13px;
     flex-shrink:0;
 }
 
@@ -125,7 +126,7 @@ h1{
 }
 
 .drag-handle{
-    height:34px;
+    height:30px;
     width:26px;
     display:flex;
     align-items:center;
@@ -143,7 +144,7 @@ h1{
 
 input,select{
     width:100%;
-    min-height:34px;
+    min-height:30px;
     background:#222;
     color:white;
     border:1px solid #2d2d2d;
@@ -384,7 +385,7 @@ select option:disabled{
 
 /* smooth card drag */
 .drag-placeholder{
-    min-height:44px;
+    min-height:38px;
     border:2px dashed #d60000;
     border-radius:14px;
     background:rgba(214,0,0,0.12);
@@ -407,6 +408,21 @@ select option:disabled{
     opacity:0.96;
 }
 
+
+.drag-placeholder{
+    display:grid;
+    grid-template-columns:28px minmax(0,1fr) 138px 28px;
+    align-items:center;
+    gap:7px;
+}
+
+.drag-placeholder-number{
+    width:22px;
+    text-align:center;
+    font-weight:700;
+    font-size:13px;
+    color:white;
+}
 </style>
 </head>
 
@@ -1262,6 +1278,52 @@ function finishGame(){
     renderScreen();
 }
 
+
+function updateDragPreviewNumbers(){
+    const table = document.getElementById('playersTable');
+    if(!table){
+        return;
+    }
+
+    const slots = Array.from(table.children).filter(item =>
+        item.classList.contains('data-row') || item.classList.contains('drag-placeholder')
+    );
+
+    slots.forEach((item, index) => {
+        if(item.classList.contains('drag-placeholder')){
+            const num = item.querySelector('.drag-placeholder-number');
+            if(num){
+                num.textContent = index + 1;
+            }
+            return;
+        }
+
+        const numCell = item.querySelector('.number-cell');
+        if(numCell && !item.classList.contains('dead-player')){
+            numCell.textContent = index + 1;
+        }
+    });
+
+    if(dragFloatingCard && currentOverIndex !== null){
+        const floatingNumber = dragFloatingCard.querySelector('.number-cell');
+        if(floatingNumber){
+            floatingNumber.textContent = currentOverIndex + 1;
+        }
+    }
+}
+
+function restoreRealNumbers(){
+    document.querySelectorAll('.data-row').forEach((row, index) => {
+        const numCell = row.querySelector('.number-cell');
+        const player = players[index];
+
+        if(numCell && player){
+            numCell.textContent = player.alive === false ? '☠️' : index + 1;
+        }
+    });
+}
+
+
 function startDrag(event, index){
     if(gameStarted) return;
 
@@ -1292,9 +1354,11 @@ function startDrag(event, index){
     dragPlaceholder = document.createElement('div');
     dragPlaceholder.className = 'drag-placeholder';
     dragPlaceholder.style.height = rect.height + 'px';
+    dragPlaceholder.innerHTML = '<div class="drag-placeholder-number"></div><div></div><div></div><div></div>';
 
     row.parentNode.insertBefore(dragPlaceholder, row);
     row.classList.add('dragging-source');
+    updateDragPreviewNumbers();
 
     handle.setPointerCapture(event.pointerId);
     handle.onpointermove = moveDrag;
@@ -1336,6 +1400,7 @@ function moveDrag(event){
     );
 
     currentOverIndex = slots.indexOf(dragPlaceholder);
+    updateDragPreviewNumbers();
 }
 
 function endDrag(event){
@@ -1382,6 +1447,7 @@ function endDrag(event){
 
     draggedIndex = null;
     currentOverIndex = null;
+    restoreRealNumbers();
 
     renderScreen();
 }
